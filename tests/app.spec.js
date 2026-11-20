@@ -27,7 +27,7 @@ async function openSettings(page) { await page.click('#set'); await expect(page.
 
 test('открывается без ошибок, первый запуск', async ({ page }) => {
   const errs = await setup(page, { day: 1 });
-  await expect(page.locator('.ring .big')).toHaveText('1');
+  await expect(page.locator('[data-compact]')).toContainText('таблетка 1 из');
   await expect(page.locator('.hero .hb')).toContainText('через');
   await expect(page.locator('#petb')).toBeVisible();
   expect(errs).toEqual([]);
@@ -43,9 +43,9 @@ test('прогноз: месячные через 2 дня после после
 test('отметка таблетки и отмена отметки', async ({ page }) => {
   await setup(page, { day: 3 });
   await page.click('[data-mark]');
-  await expect(page.locator('[data-unmark]')).toContainText('Выпила');
+  await expect(page.locator('[data-unmark]')).toContainText('✓');
   await page.click('[data-unmark]');
-  await expect(page.locator('.ring-box [data-mark]')).toBeVisible();
+  await expect(page.locator('[data-mark]').first()).toBeVisible();
 });
 
 test('пропуск таблетки на 1-й неделе + близость = предупреждение о риске', async ({ page }) => {
@@ -59,6 +59,7 @@ test('пропуск таблетки на 1-й неделе + близость 
 test('отменить месячные: пачка без плацебо, прогноз сдвигается и возвращается', async ({ page }) => {
   await setup(page, { day: 5 });
   const before = await ev(page, 'nextBleedStart(today())');
+  await page.click('[data-compact]');
   await page.click('[data-skip]'); await page.click('[data-skip]');
   await expect(page.locator('.skipnote')).toBeVisible();
   const after = await ev(page, 'nextBleedStart(today())');
@@ -70,8 +71,9 @@ test('отменить месячные: пачка без плацебо, пр�
 
 test('на плацебо: отменить месячные = новая пачка сегодня', async ({ page }) => {
   await setup(page, { day: 24 });
+  await page.click('[data-compact]');
   await page.click('[data-skipnow]'); await page.click('[data-skipnow]');
-  await expect(page.locator('.ring .big')).toHaveText('1');
+  await expect(page.locator('[data-compact]')).toContainText('таблетка 1 из');
 });
 
 test('месячные: начались, на следующий день спрашивает, отметила по ошибке', async ({ page }) => {
@@ -168,7 +170,7 @@ test('окно дня: средства, обезболивающее, свой 
   await page.fill('#sya', 'Спина'); await page.click('#syb');
   await page.locator('.sheet-bg').click({ position: { x: 5, y: 5 } });
   await page.click('[data-tab=cal]');
-  await page.click('[data-day="2026-11-18"]');
+  await page.evaluate(() => openDay('2026-11-18'));
   await page.click('[data-pd="1"]'); await page.click('[data-pd="1"]');
   await page.fill('#mdn', 'Нурофен'); await page.click('#mda');
   await page.click('[data-s="Спина"]');
@@ -234,7 +236,7 @@ test('apk: расписание уведомлений уходит в Android',
   expect(ids).toContain('p22026-11-20');     // повтор через 2 часа
   expect(ids).toContain('l2026-11-21');      // завтра последняя активная
   expect(ids).toContain('b2026-11-22');      // за день до месячных (с 23.11)
-  await page.click('.ring-box [data-mark]');
+  await page.click('[data-mark]');
   expect(await ev(page, 'window.__sched.map(x=>x.id)')).not.toContain('p2026-11-20');
   await openSettings(page);
   await page.uncheck('[data-nf=period]');
