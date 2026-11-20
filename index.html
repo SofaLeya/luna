@@ -46,12 +46,16 @@ header h1 span{color:var(--rose)}
 .ring-box{display:flex;flex-direction:column;align-items:center;gap:14px}
 .ring{position:relative;width:200px;height:200px}
 .hero{text-align:center;padding:20px 16px}
+.hero{position:relative}
+.hero .cyc{position:absolute;top:12px;right:14px;font-size:12px;color:var(--mut)}
+.hero .cyc b{color:var(--tx);font-size:14px}
 .hero .hk{color:var(--mut);font-size:14px}
 .hero .hb{font-size:34px;font-weight:800;margin:2px 0;background:linear-gradient(135deg,#ff8fbd,#b07be8);-webkit-background-clip:text;background-clip:text;color:transparent}
 .hero .hs{color:var(--mut);font-size:15px}
 .hbtn{justify-content:center;margin-top:14px}
 .btn.main.sm2{width:auto;font-size:16px;padding:12px 20px}
 .pt{font-weight:600}
+.skipnote{background:#2a1530;border:1px solid #5a2a5e;border-radius:12px;padding:10px 12px;font-size:14px;width:100%}
 .linkbtn{display:block;margin:12px auto 0;font-size:14px;color:var(--mut);text-decoration:underline;text-underline-offset:3px}
 .minis{display:flex;gap:8px;width:100%}
 .minis div{flex:1;background:var(--bg2);border-radius:12px;padding:8px;text-align:center}
@@ -93,7 +97,9 @@ nav.tabs button.on .e{filter:none}
 .d.f1{background:#3b2030} .d.f2{background:#5a1f3a} .d.f3{background:#7a1f43} .d.f4{background:#9b1840}
 .d .mk{position:absolute;bottom:4px;font-size:10px;line-height:1}
 .d .mk.ok{color:var(--ok)} .d .mk.miss{color:var(--bad)} .d .mk.pl{color:var(--dim)}
-.d .sy{position:absolute;top:3px;right:4px;width:5px;height:5px;border-radius:50%;background:var(--warn)}
+.d .cdn{position:absolute;top:3px;right:5px;font-size:9px;color:var(--dim)}
+.d .dn{margin-top:9px;font-size:16px;font-weight:600}
+.d .sy{position:absolute;top:4px;left:5px;width:5px;height:5px;border-radius:50%;background:var(--warn)}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;font-size:12px;color:var(--mut)}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-2px;margin-right:4px}
 .sheet-bg{position:fixed;inset:0;background:#000a;z-index:20;display:flex;align-items:flex-end;justify-content:center;animation:fd .15s}
@@ -110,6 +116,7 @@ label.f{display:block;margin:12px 0 5px;font-size:14px;color:var(--mut)}
 .ep{display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid var(--line);font-size:15px}
 .ep:first-child{border-top:0}
 .tag{font-size:12px;padding:2px 8px;border-radius:10px;background:#ffffff12;color:var(--mut);margin-left:6px}
+.yr{color:var(--mut);font-size:13px;font-weight:700;padding:12px 0 4px;border-top:1px solid var(--line)}
 .tag.br{background:#5a1f3a;color:#ffc1da}
 .stat{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .stat div{background:var(--bg2);border-radius:14px;padding:12px}
@@ -128,14 +135,15 @@ label.f{display:block;margin:12px 0 5px;font-size:14px;color:var(--mut)}
 <nav class="tabs"><div class="in">
   <button data-tab="today" class="on"><span class="e">🌙</span>Сегодня</button>
   <button data-tab="cal"><span class="e">📅</span>Календарь</button>
-  <button data-tab="stats"><span class="e">📊</span>История</button>
+  <button data-tab="stats"><span class="e">📊</span>Анализ</button>
 </div></nav>
 
 <script>
 /* ---------- данные ---------- */
 const KEY='luna-v1';
 const FLOW=['нет','мажется','слабо','средне','обильно'];
-const SYM=['Боль внизу живота','Голова','Грудь','Вздутие','Тошнота','Настроение вниз','Раздражительность','Усталость','Акне','Отёки','Тяга к сладкому'];
+const MOOD=['😊 хорошее','😌 спокойное','😐 обычное','😴 вялое','😢 грустное','😠 злое','😰 тревожное'];
+const SYM=['Боль внизу живота','Голова','Грудь','Вздутие','Тошнота','Раздражительность','Усталость','Акне','Отёки','Тяга к сладкому'];
 const PRESETS=[
   {id:'21p7',name:'21 + 7 плацебо',active:21,inactive:7,type:'placebo',hint:'Ярина Плюс, Джес Плюс и др.'},
   {id:'21b7',name:'21 + 7 перерыв',active:21,inactive:7,type:'break',hint:'Ярина, Регулон и др. - 7 дней без таблеток'},
@@ -144,7 +152,7 @@ const PRESETS=[
   {id:'cont',name:'Без перерыва',active:28,inactive:0,type:'placebo',hint:'пью активные подряд'}
 ];
 let S=load();
-function def(){return{v:1,setup:false,since:null,mode:'pill',pill:{name:'Ярина Плюс',preset:'21p7',active:21,inactive:7,type:'placebo',time:'21:00',packs:[],stock:null},taken:{},days:{},ended:{},cyc:{len:28,auto:true,dur:5,after:2}}}
+function def(){return{v:1,setup:false,since:null,mode:'pill',pill:{name:'Ярина Плюс',preset:'21p7',active:21,inactive:7,type:'placebo',time:'21:00',packs:[],stock:null,skip:{}},taken:{},days:{},ended:{},cyc:{len:28,auto:true,dur:5,after:2}}}
 function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);return Object.assign(def(),o,{pill:Object.assign(def().pill,o.pill||{}),cyc:Object.assign(def().cyc,o.cyc||{})})}}catch(e){}return def()}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Не получилось сохранить в браузере - сделай копию в настройках')}}
 
@@ -167,14 +175,19 @@ function plural(n,a,b,c){n=Math.abs(n)%100;const m=n%10;if(n>10&&n<20)return c;i
 const P=()=>S.pill;
 const C=()=>S.cyc;
 const L=()=>P().active+P().inactive;
+function packLen(st){return (P().skip&&P().skip[st])?P().active:L()}
 function packInfo(k){
   if(S.mode!=='pill'||!P().packs.length)return null;
   const ps=[...P().packs].sort();
   let st=null;for(const p of ps)if(p<=k)st=p;
   if(!st)return null;
-  const n=diff(st,k),len=L(),kk=Math.floor(n/len),vs=add(st,kk*len),day=n%len+1;
-  // если следующая реальная пачка начата раньше - эта виртуальная обрезается
-  return{day,len,start:vs,end:add(vs,len-1),active:day<=P().active,inIdx:day-P().active,virtual:kk>0};
+  let s=st,virt=false;
+  for(let g=0;g<600;g++){
+    const len=packLen(s),nx=add(s,len);
+    if(nx>k){const day=diff(s,k)+1;return{day,len,start:s,end:add(s,len-1),active:day<=P().active,inIdx:day-P().active,virtual:virt,skipped:len<L()}}
+    s=nx;virt=true;
+  }
+  return null;
 }
 function schedAt(k){const[h,m]=P().time.split(':').map(Number);const d=parse(k);d.setHours(h,m,0,0);return d}
 function lateH(k){const t=S.taken[k];if(!t)return null;return (new Date(t.at)-schedAt(k))/36e5}
@@ -183,7 +196,9 @@ function predBleed(k){
     if(P().inactive<1)return false;
     const pi=packInfo(k);if(!pi)return false;
     const first=P().packs.slice().sort()[0];
-    for(const st of [pi.start,add(pi.start,-pi.len)]){
+    const prev=packInfo(add(pi.start,-1));
+    for(const q of [pi,prev]){
+      if(!q||q.skipped)continue;const st=q.start;
       if(st<first)continue;
       const d=diff(add(st,P().active-1+C().after),k);
       if(d>=0&&d<C().dur)return true;
@@ -234,6 +249,9 @@ function natural(){
   const lastStart=st[st.length-1]||null;
   return{avg,len:C().dur,next:lastStart?add(lastStart,avg):null,lastStart,count:cyc.length,hist};
 }
+function starts(){return episodes().filter(e=>e.max>=2).map(e=>e.start)}
+let _st=null;
+function cycleDay(k,st){st=st||starts();let s=null;for(const x of st){if(x<=k)s=x;else break}return s?diff(s,k)+1:null}
 function curPeriod(t){
   const eps=episodes();const e=eps[eps.length-1];
   if(!e||S.ended[e.start])return e&&e.end===t?{e,today:true,day:diff(e.start,t)+1,closed:true}:null;
@@ -243,21 +261,22 @@ function curPeriod(t){
 }
 function hero(t){
   const cp=curPeriod(t),D=(n)=>n+' '+plural(n,'день','дня','дней');
-  let h='<div class="card hero"><div class="hk">Месячные</div>';
+  const cdn=cycleDay(t);
+  let h=`<div class="card hero">${cdn?`<div class="cyc">день цикла <b>${cdn}</b></div>`:''}<div class="hk">Месячные</div>`;
   if(cp&&cp.today){
     const left=C().dur-cp.day;
     h+=`<div class="hb">${cp.day}-й день</div><div class="hs">${cp.closed?'отмечено, что сегодня последний день':left>0?'по плану ещё ~'+D(left):'по плану уже должны заканчиваться'}</div>`;
     h+=cp.closed?`<div class="row hbtn"><button class="btn" data-reopen>Нет, ещё идут</button></div>`:`<div class="row hbtn"><button class="btn" data-end>Сегодня последний день</button></div>`;
-    h+=`<button class="linkbtn" data-cancel>Отменить месячные</button>`;
+    h+=`<button class="linkbtn" data-cancel>Отметила по ошибке</button>`;
   }else if(cp){
-    h+=`<div class="hb">${cp.day}-й день?</div><div class="hs">Вчера были. Сегодня ещё идут?</div><div class="row hbtn"><button class="btn main sm2" data-cont>Да, идут</button><button class="btn" data-end>Нет, закончились</button></div><button class="linkbtn" data-cancel>Отменить месячные</button>`;
+    h+=`<div class="hb">${cp.day}-й день?</div><div class="hs">Вчера были. Сегодня ещё идут?</div><div class="row hbtn"><button class="btn main sm2" data-cont>Да, идут</button><button class="btn" data-end>Нет, закончились</button></div><button class="linkbtn" data-cancel>Отметила по ошибке</button>`;
   }else{
     const n=S.mode==='natural'?natural():null;
     const late=n&&n.next&&n.next<t?diff(n.next,t):0;
     const ns=nextBleedStart(t);
     if(late>0)h+=`<div class="hb">задержка ${D(late)}</div><div class="hs">ждали ${fmtW(n.next)}</div>`;
     else if(predBleed(t))h+=`<div class="hb">ждём сейчас</div><div class="hs">по прогнозу должны начаться в эти дни</div>`;
-    else if(ns){const d=diff(t,ns);h+=`<div class="hb">через ${D(d)}</div><div class="hs">~ ${fmtW(ns)}</div>`}
+    else if(ns){const d=diff(t,ns);const pi=S.mode==='pill'?packInfo(t):null;h+=`<div class="hb">через ${D(d)}</div><div class="hs">~ ${fmtW(ns)}${pi&&pi.skipped?' · в этой пачке отменены':''}</div>`}
     else if(S.mode==='pill'&&P().inactive<1)h+=`<div class="hb">не ожидаются</div><div class="hs">пьёшь без перерыва</div>`;
     else h+=`<div class="hb">пока не знаю</div><div class="hs">нажми "Начались", когда придут</div>`;
     h+=`<div class="row hbtn"><button class="btn main sm2" data-start>🩸 Начались сегодня</button></div>`;
@@ -318,7 +337,7 @@ function todayView(){
     else if(tk){const lh=lateH(t);btn=`<button class="btn done" data-unmark="${t}">✓ Выпила в ${new Date(tk.at).toTimeString().slice(0,5)}${lh>=12?' (опоздание)':''}</button>`}
     else btn=`<button class="btn main" data-mark="${t}">Выпила 💊</button>`;
     h+=`<div class="card ring-box"><div class="pt">💊 ${esc(P().name)} <span class="mut">в ${P().time}</span></div><div class="ring">${ringSVG(pi)}<div class="c"><div class="big">${pi.day}</div><div class="of">таблетка из ${pi.len}</div><div class="ph">${phase}</div></div></div>${btn}
-    <div class="minis"><div><span>последняя активная</span><b>${fmtShort(add(pi.start,P().active-1))}</b></div><div><span>новая пачка</span><b>${fmtShort(add(pi.end,1))}</b></div>${P().stock!==null?`<div><span>в запасе</span><b>${P().stock}</b></div>`:''}</div></div>`;
+    ${skipBtn(pi,t)}<div class="minis"><div><span>последняя активная</span><b>${fmtShort(add(pi.start,P().active-1))}</b></div><div><span>новая пачка</span><b>${fmtShort(add(pi.end,1))}</b></div>${P().stock!==null?`<div><span>в запасе</span><b>${P().stock}</b></div>`:''}</div></div>`;
   }else h+=hero(t);
   const dd=S.days[t]||{};
   h+=`<div class="card"><h3>Как сегодня</h3><div class="chips">${FLOW.map((f,i)=>`<button class="chip flow-${i} ${(dd.flow||0)===i?'on':''}" data-flow="${i}">${i?'🩸 ':''}${f}</button>`).join('')}</div>
@@ -333,9 +352,11 @@ function calView(){
   const start=add(key(first),-off);
   let h=`<div class="card"><div class="cal-head"><button class="icon-btn" id="pm">‹</button><b>${MONN[m-1]} ${y}</b><button class="icon-btn" id="nm">›</button></div><div class="grid">`;
   h+=['пн','вт','ср','чт','пт','сб','вс'].map(w=>`<div class="wd">${w}</div>`).join('');
+  const stl=starts();
   for(let i=0;i<42;i++){
     const k=add(start,i),d=parse(k),dd=S.days[k]||{};
     if(i===35&&d.getMonth()!==m-1)break;
+    const cd=cycleDay(k,stl);
     let cls='d';if(d.getMonth()!==m-1)cls+=' out';if(k===t)cls+=' today';
     if(dd.flow)cls+=' f'+dd.flow;else if(predBleed(k)&&k>=t)cls+=' pred';
     let mk='';
@@ -347,8 +368,8 @@ function calView(){
         if(pi.day===1)mk+='';
       }
     }
-    const sy=(dd.sym&&dd.sym.length)||dd.note?'<span class="sy"></span>':'';
-    h+=`<button class="${cls}" data-day="${k}">${d.getDate()}${mk}${sy}</button>`;
+    const sy=(dd.sym&&dd.sym.length)||dd.note||dd.mood||dd.w?'<span class="sy"></span>':'';
+    h+=`<button class="${cls}" data-day="${k}">${cd?`<span class="cdn">${cd}</span>`:''}<span class="dn">${d.getDate()}</span>${mk}${sy}</button>`;
   }
   h+=`</div><div class="legend">`;
   if(S.mode==='pill')h+=`<span><b style="color:var(--ok)">●</b> выпила</span><span><b style="color:var(--bad)">✕</b> пропуск</span><span><b style="color:var(--bad)">!</b> опоздание 12ч+</span><span><i style="background:#1a161c;border:1px solid var(--line)"></i>${P().type==='placebo'?'плацебо':'перерыв'}</span>`;
@@ -357,36 +378,53 @@ function calView(){
   return h;
 }
 
+function cycStats(){
+  const eps=episodes().filter(e=>e.max>=2);
+  const rows=eps.map((e,i)=>({e,cyc:i+1<eps.length?diff(e.start,eps[i+1].start):null}));
+  const last=rows.filter(r=>r.cyc&&r.cyc>=15&&r.cyc<=60).slice(-6);
+  const done=rows.filter(r=>r.e.end<today()||S.ended[r.e.start]).slice(-6);
+  return{rows,avgC:last.length?Math.round(last.reduce((a,r)=>a+r.cyc,0)/last.length):null,avgP:done.length?Math.round(done.reduce((a,r)=>a+r.e.n,0)/done.length):null,nC:last.length};
+}
 function statsView(){
-  const eps=episodes().slice().reverse();let h='';
+  let h='';const cs=cycStats();
+  h+=`<div class="card"><h3>Анализ цикла${cs.nC?' · последние '+cs.nC:''}</h3><div class="stat">
+    <div><b>${cs.avgC?cs.avgC+' '+plural(cs.avgC,'день','дня','дней'):'-'}</b><span>средняя длина цикла</span></div>
+    <div><b>${cs.avgP?cs.avgP+' '+plural(cs.avgP,'день','дня','дней'):'-'}</b><span>средняя длительность месячных</span></div></div></div>`;
   if(S.mode==='pill'){
-    // приём за последние 3 пачки
     const t=today();let exp=0,ok=0,late=0;
     const from=add(t,-L()*3);
     for(let k=from;k<t;k=add(k,1)){if(S.since&&k<S.since)continue;const pi=packInfo(k);if(!pi||!pi.active)continue;exp++;if(S.taken[k]){ok++;if(lateH(k)>=12)late++}}
-    const wd=eps.filter(e=>e.kind==='отмены'),br=eps.filter(e=>e.kind==='прорывное');
-    const avgLen=wd.length?(wd.slice(0,6).reduce((a,e)=>a+e.n,0)/Math.min(6,wd.length)).toFixed(1):'-';
-    h+=`<div class="card"><h3>Последние 3 пачки</h3><div class="stat">
-      <div><b>${exp?Math.round(ok/exp*100)+'%':'-'}</b><span>активных таблеток выпито</span></div>
+    const br=episodes().filter(e=>e.kind==='прорывное'&&e.start>=add(t,-120));
+    if(exp)h+=`<div class="card"><h3>Таблетки · последние 3 пачки</h3><div class="stat">
+      <div><b>${Math.round(ok/exp*100)}%</b><span>активных выпито</span></div>
       <div><b>${exp-ok}</b><span>${plural(exp-ok,'пропуск','пропуска','пропусков')}</span></div>
       <div><b>${late}</b><span>опозданий больше 12 ч</span></div>
-      <div><b>${avgLen}</b><span>дней длится кровотечение отмены (в среднем)</span></div>
-    </div>${br.length?`<p class="sm" style="margin:12px 0 0">Прорывных кровотечений: <b>${br.length}</b>. Если они повторяются несколько пачек подряд - это повод показать историю гинекологу.</p>`:''}</div>`;
-  }else{
-    const n=natural();
-    h+=`<div class="card"><h3>Цикл</h3><div class="stat"><div><b>${n.avg}</b><span>средний цикл, дней</span></div><div><b>${n.len}</b><span>средняя длина месячных</span></div></div></div>`;
+      <div><b>${br.length}</b><span>прорывных кровотечений за 4 мес</span></div></div></div>`;
   }
-  h+=`<div class="card"><h3>Кровотечения</h3>`;
-  if(!eps.length)h+=`<p class="mut sm">Пока ничего не отмечено.</p>`;
-  else h+=eps.slice(0,24).map(e=>`<div class="ep"><span>${fmtShort(e.start)}${e.end!==e.start?' - '+fmtShort(e.end):''}${e.kind?`<span class="tag ${e.kind==='прорывное'?'br':''}">${e.kind}</span>`:''}</span><span class="mut">${e.n} ${plural(e.n,'день','дня','дней')} · ${FLOW[e.max]}</span></div>`).join('');
+  // вес
+  const ws=Object.entries(S.days).filter(([k,d])=>d.w>0).sort();
+  if(ws.length){const [lk,ld]=ws[ws.length-1];const prev=ws.length>1?ws[ws.length-2][1].w:null;
+    h+=`<div class="card"><h3>Вес</h3><div class="row" style="justify-content:space-between"><div><b style="font-size:26px">${ld.w} кг</b><div class="mut sm">${fmt(lk)} ${parse(lk).getFullYear()}</div></div>${prev!==null?`<div class="mut">${ld.w-prev>0?'+':''}${(Math.round((ld.w-prev)*10)/10)} кг к прошлому</div>`:''}</div>${ws.length>2?spark(ws.slice(-20).map(x=>x[1].w)):''}</div>`}
+  // хронология
+  h+=`<div class="card"><h3>Хронология</h3>`;
+  const rows=cs.rows.slice().reverse();
+  if(!rows.length)h+=`<p class="mut sm">Пока ничего не отмечено.</p>`;
+  let lastY=null;
+  rows.slice(0,showAll?999:12).forEach(r=>{const y=parse(r.e.start).getFullYear();if(y!==lastY&&y!==parse(today()).getFullYear()){h+=`<div class="yr">${y}</div>`}lastY=y;
+    h+=`<div class="ep"><span><b>${fmt(r.e.start)}</b>${r.e.kind==='прорывное'?'<span class="tag br">прорывное</span>':''}<span class="dim sm"> · ${r.e.n} ${plural(r.e.n,'день','дня','дней')}</span></span><span class="mut">${r.cyc?'цикл '+r.cyc:'сейчас'}</span></div>`});
+  if(rows.length>12&&!showAll)h+=`<button class="btn small full" id="more" style="margin-top:8px">Показать всё (${rows.length})</button>`;
   h+=`</div>`;
-  // симптомы
+  // заметки
+  const notes=Object.entries(S.days).filter(([k,d])=>d.note).sort().reverse();
+  if(notes.length)h+=`<div class="card"><h3>Заметки</h3>${notes.slice(0,showAll?999:8).map(([k,d])=>`<button class="ep" style="width:100%;text-align:left" data-day="${k}"><span><b>${fmtShort(k)}.${String(parse(k).getFullYear()).slice(2)}</b> ${esc(d.note)}</span></button>`).join('')}</div>`;
   const cnt={};Object.values(S.days).forEach(d=>(d.sym||[]).forEach(s=>cnt[s]=(cnt[s]||0)+1));
   const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,6);
   if(top.length)h+=`<div class="card"><h3>Чаще всего</h3>${top.map(([s,c])=>`<div class="kv"><span class="k">${esc(s)}</span><span class="v">${c} ${plural(c,'раз','раза','раз')}</span></div>`).join('')}</div>`;
   h+=`<button class="btn full" id="exp2">Показать врачу: сводка за 6 месяцев</button>`;
   return h;
 }
+let showAll=false;
+function spark(v){const mn=Math.min(...v),mx=Math.max(...v),r=mx-mn||1,W=300,H=50;const pts=v.map((x,i)=>`${(i/(v.length-1)*W).toFixed(1)},${(H-4-(x-mn)/r*(H-8)).toFixed(1)}`).join(' ');return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:50px;margin-top:10px"><polyline points="${pts}" fill="none" stroke="#ff6fa8" stroke-width="2.5" stroke-linejoin="round"/></svg>`}
 
 /* ---------- обработчики ---------- */
 function bindView(){
@@ -401,19 +439,24 @@ function bindView(){
   document.querySelectorAll('[data-reopen]').forEach(b=>b.onclick=()=>{const cp=curPeriod(today());if(cp){delete S.ended[cp.e.start];save();render()}});
   document.querySelectorAll('[data-cancel]').forEach(b=>{let arm=false;b.onclick=()=>{
     const cp=curPeriod(today());if(!cp)return;
-    if(!arm){arm=true;b.textContent='Точно отменить? Нажми ещё раз';setTimeout(()=>{arm=false;b.textContent='Отменить месячные'},4000);return}
+    if(!arm){arm=true;b.textContent='Точно убрать отметки? Нажми ещё раз';setTimeout(()=>{arm=false;b.textContent='Отметила по ошибке'},4000);return}
     const e=cp.e,saved={};
     for(let k=e.start;k<=e.end;k=add(k,1))if(S.days[k]){saved[k]=S.days[k].flow;S.days[k].flow=0;clean(k)}
     const wasEnded=S.ended[e.start];delete S.ended[e.start];save();render();
-    toast('Месячные отменены',()=>{for(const k in saved){S.days[k]=S.days[k]||{sym:[],note:''};S.days[k].flow=saved[k]}if(wasEnded)S.ended[e.start]=true;save();render()});
+    toast('Отметки убраны',()=>{for(const k in saved){S.days[k]=S.days[k]||{sym:[],note:''};S.days[k].flow=saved[k]}if(wasEnded)S.ended[e.start]=true;save();render()});
   }});
+  document.querySelectorAll('[data-skip]').forEach(b=>armed(b,()=>{P().skip=P().skip||{};P().skip[b.dataset.skip]=true;save();render();toast('Месячные в этой пачке отменены',()=>{delete P().skip[b.dataset.skip];save();render()})}));
+  document.querySelectorAll('[data-unskip]').forEach(b=>b.onclick=()=>{delete P().skip[b.dataset.unskip];save();render();toast('Перерыв вернулся')});
+  document.querySelectorAll('[data-skipnow]').forEach(b=>armed(b,()=>{const t=today(),old=[...P().packs],st=P().stock;startPack(t);toast('Новая пачка с сегодня',()=>{P().packs=old;P().stock=st;save();render()})}));
   const np=$('#newpack');if(np)np.onclick=()=>{startPack(today())};
   const pm=$('#pm'),nm=$('#nm');
   if(pm){pm.onclick=()=>{calM=shiftM(calM,-1);render()};nm.onclick=()=>{calM=shiftM(calM,1);render()}}
+  const mo=$('#more');if(mo)mo.onclick=()=>{showAll=true;render()};
   const e2=$('#exp2');if(e2)e2.onclick=doctorSummary;
 }
+function armed(b,fn){let arm=false;const txt=b.innerHTML;b.onclick=()=>{if(!arm){arm=true;b.textContent='Точно? Нажми ещё раз';setTimeout(()=>{arm=false;b.innerHTML=txt},4000);return}fn()}}
 function shiftM(ym,n){let[y,m]=ym.split('-').map(Number);m+=n;if(m<1){m=12;y--}if(m>12){m=1;y++}return y+'-'+pad(m)}
-function clean(k){const d=S.days[k];if(d&&!d.flow&&!(d.sym&&d.sym.length)&&!d.note)delete S.days[k]}
+function clean(k){const d=S.days[k];if(d&&!d.flow&&!(d.sym&&d.sym.length)&&!d.note&&!d.mood&&!d.w&&!d.temp)delete S.days[k]}
 function markPill(k){
   S.taken[k]={at:new Date().toISOString()};save();
   const lh=lateH(k);render();
@@ -442,27 +485,30 @@ function sheet(html,onBind){
 }
 function openDay(k){
   const dd=Object.assign({flow:0,sym:[],note:''},S.days[k]||{});dd.sym=[...(dd.sym||[])];
-  const pi=S.mode==='pill'?packInfo(k):null;
+  const pi=S.mode==='pill'?packInfo(k):null,cd=cycleDay(k);
   let pill='';
   if(pi&&!(P().type==='break'&&!pi.active)){
     const tk=S.taken[k];
     pill=`<h4>Таблетка · день ${pi.day} из ${pi.len} ${pi.active?'':'(плацебо)'}</h4><div class="row"><button class="chip ${tk?'on':''}" id="pt">${tk?'✓ выпила':'не отмечена'}</button>${tk?`<input type="time" id="ptm" value="${new Date(tk.at).toTimeString().slice(0,5)}" style="width:auto">`:''}</div>${tk&&lateH(k)>=12&&pi.active?'<div class="sm" style="color:var(--bad);margin-top:6px">Опоздание больше 12 часов</div>':''}`;
   }else if(pi)pill=`<h4>День ${pi.day} из ${pi.len} - перерыв</h4>`;
-  const html=`<h2>${fmtW(k)}</h2>${pill}
+  const html=`<h2>${fmtW(k)}</h2>${cd?`<div class="mut sm" style="margin-top:-8px">день цикла ${cd}</div>`:''}${pill}
   <h4>Кровотечение</h4><div class="chips" id="fl">${FLOW.map((f,i)=>`<button class="chip flow-${i} ${dd.flow===i?'on':''}" data-f="${i}">${f}</button>`).join('')}</div>
   <h4>Самочувствие</h4><div class="chips" id="sy">${SYM.map(s=>`<button class="chip ${dd.sym.includes(s)?'on':''}" data-s="${esc(s)}">${esc(s)}</button>`).join('')}</div>
+  <h4>Настроение</h4><div class="chips">${MOOD.map(m=>`<button class="chip ${dd.mood===m?'on':''}" data-mo="${m}">${m}</button>`).join('')}</div>
+  <div class="row" style="margin-top:4px;flex-wrap:nowrap"><div style="flex:1"><label class="f">Вес, кг</label><input id="wt" type="number" step="0.1" min="20" max="250" inputmode="decimal" value="${dd.w||''}"></div><div style="flex:1"><label class="f">Температура, °C</label><input id="tp" type="number" step="0.1" min="34" max="42" inputmode="decimal" value="${dd.temp||''}"></div></div>
   <h4>Заметка</h4><textarea id="nt" placeholder="например: живот болел с утра, выпила нурофен">${esc(dd.note||'')}</textarea>
   ${S.mode==='pill'?`<div class="row" style="margin-top:12px"><button class="btn small" id="np">С этого дня начала новую пачку</button></div>`:''}
   <button class="btn main" id="ok" style="margin-top:16px">Готово</button>`;
   sheet(html,(sh,close)=>{
     sh.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{dd.flow=+b.dataset.f;sh.querySelectorAll('[data-f]').forEach(x=>x.classList.toggle('on',x===b))});
+    sh.querySelectorAll('[data-mo]').forEach(b=>b.onclick=()=>{dd.mood=dd.mood===b.dataset.mo?'':b.dataset.mo;sh.querySelectorAll('[data-mo]').forEach(x=>x.classList.toggle('on',x.dataset.mo===dd.mood))});
     sh.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{const s=b.dataset.s;const i=dd.sym.indexOf(s);i<0?dd.sym.push(s):dd.sym.splice(i,1);b.classList.toggle('on')});
     const pt=sh.querySelector('#pt');
     if(pt)pt.onclick=()=>{if(S.taken[k])delete S.taken[k];else{const at=schedAt(k);const now=new Date();S.taken[k]={at:(k===today()?now:at).toISOString()}}save();close();openDay(k)};
     const ptm=sh.querySelector('#ptm');
     if(ptm)ptm.onchange=()=>{const[h,m]=ptm.value.split(':').map(Number);const old=new Date(S.taken[k].at);const d=parse(k);d.setHours(h,m,0,0);if(old.getDate()!==d.getDate()&&old>d&&h<12)d.setDate(d.getDate()+1);S.taken[k]={at:d.toISOString()};save()};
     const np=sh.querySelector('#np');if(np)np.onclick=()=>{close();startPack(k)};
-    sh.querySelector('#ok').onclick=()=>{dd.note=sh.querySelector('#nt').value.trim();S.days[k]={flow:dd.flow,sym:dd.sym,note:dd.note};clean(k);save();close()};
+    sh.querySelector('#ok').onclick=()=>{dd.note=sh.querySelector('#nt').value.trim();const w=parseFloat(sh.querySelector('#wt').value.replace(',','.')),tp=parseFloat(sh.querySelector('#tp').value.replace(',','.'));S.days[k]={flow:dd.flow,sym:dd.sym,note:dd.note,mood:dd.mood||'',w:w>0?Math.round(w*10)/10:0,temp:tp>0?tp:0};clean(k);save();close()};
   });
 }
 
@@ -480,6 +526,7 @@ function openHelp(which){
   const gen=`<h2>Как пользоваться</h2><div class="help">
   <p>💊 <b>Каждый вечер</b> жми "Выпила" на главной. Кольцо показывает всю пачку: розовым - выпитые, красным - пропуски, серым - ${P().type==='break'?'перерыв':'плацебо'}.</p>
   <p>🩸 <b>Месячные</b>: жми "Начались сегодня", потом каждый день приложение спросит, идут ли ещё. Прошлые дни можно отметить в календаре. Длину цикла и месячных меняй в настройках ⚙︎.</p>
+  <p>🚫 <b>Отменить месячные</b>: на карточке таблеток нажми "Отменить месячные в этой пачке" - после последней активной сразу начнётся новая пачка, без плацебо.</p>
   <p>📦 <b>Новая пачка</b> начинается сама после последней таблетки. Если начала раньше или позже - открой этот день в календаре и нажми "С этого дня начала новую пачку".</p>
   <p>⏰ <b>Напоминание.</b> Браузерные приложения не умеют надёжно будить телефон, поэтому поставь обычный будильник на ${P().time} с подписью "таблетка". Если откроешь приложение после этого времени и не отметишь - оно напомнит.</p>
   <p>🔒 <b>Данные</b> хранятся только на этом телефоне, никуда не отправляются. Делай иногда копию в настройках.</p>
@@ -488,6 +535,12 @@ function openHelp(which){
   sheet(which==='miss'?miss:gen,(sh,close)=>{const b=sh.querySelector('#tomiss');if(b)b.onclick=()=>{close();openHelp('miss')}});
 }
 
+function skipBtn(pi,t){
+  if(P().inactive<1)return '';
+  if(pi.skipped)return `<div class="skipnote">🚫 Месячные отменены: после ${pi.len}-й таблетки сразу новая пачка <button class="linkbtn" style="display:inline;margin:0 0 0 4px" data-unskip="${pi.start}">вернуть перерыв</button></div>`;
+  if(pi.active)return `<button class="btn full" data-skip="${pi.start}">🚫 Отменить месячные в этой пачке</button><div class="dim sm" style="text-align:center;margin-top:-6px">пропустить ${P().type==='placebo'?'плацебо':'перерыв'} и начать новую пачку ${fmt(add(pi.start,P().active))}</div>`;
+  return `<button class="btn full" data-skipnow>🚫 Отменить месячные - начать новую пачку сегодня</button>`;
+}
 function stepper(id,v,min,max,unit){return `<div class="step" data-id="${id}" data-min="${min}" data-max="${max}"><button type="button" data-d="-1">−</button><b>${v}</b><span class="mut">${unit}</span><button type="button" data-d="1">+</button></div>`}
 function bindSteppers(root,obj,units){root.querySelectorAll('.step').forEach(st=>st.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const id=st.dataset.id;obj[id]=Math.min(+st.dataset.max,Math.max(+st.dataset.min,obj[id]+ +b.dataset.d));st.querySelector('b').textContent=obj[id];if(units[id])st.querySelector('span').textContent=units[id](obj[id])}))}
 const U={len:n=>plural(n,'день','дня','дней'),dur:n=>plural(n,'день','дня','дней'),after:n=>plural(n,'день','дня','дней')};
@@ -515,6 +568,9 @@ function openSettings(){
     <div class="dim sm" style="margin-top:4px">Если сбилось - поправь число, пачка пересчитается.</div>
     <label class="f">Пачек в запасе (оставь пустым, если не считать)</label><input id="pk" type="number" min="0" max="50" value="${p.stock===null?'':p.stock}">
   </div>
+  <h4>Перенос из "Мой календарь"</h4>
+  <div class="dim sm">Там: Настройки → Резервная копия и восстановление → сохранить копию на телефон. Потом выбери этот файл тут. Перенесутся месячные, заметки, вес и температура. То, что уже есть в Луне, не сотрётся.</div>
+  <div class="row" style="margin-top:8px"><button class="btn small" id="pcb">📥 Выбрать файл копии</button><input type="file" id="pcf" class="hide"></div>
   <h4>Копия данных</h4>
   <div class="row"><button class="btn small" id="ex">Скачать копию</button><button class="btn small" id="exc">Скопировать копию</button><button class="btn small" id="im">Загрузить копию</button><input type="file" id="imf" accept=".json,application/json,text/plain" class="hide"></div>
   <details style="margin-top:8px"><summary class="dim sm">Вставить копию текстом</summary><textarea id="imt" placeholder="вставь сюда скопированную копию"></textarea><button class="btn small" id="imtb" style="margin-top:6px">Загрузить из текста</button></details>
@@ -526,6 +582,8 @@ function openSettings(){
     sh.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m;sh.querySelectorAll('[data-m]').forEach(x=>x.classList.toggle('on',x===b));sh.querySelector('#pillset').classList.toggle('hide',mode!=='pill');sh.querySelectorAll('[data-for]').forEach(x=>x.classList.toggle('hide',x.dataset.for!==mode))});
     sh.querySelector('#ps').onchange=e=>sh.querySelector('#cust').classList.toggle('hide',e.target.value!=='custom');
     sh.querySelector('#ex').onclick=exportData;
+    sh.querySelector('#pcb').onclick=()=>sh.querySelector('#pcf').click();
+    sh.querySelector('#pcf').onchange=e=>importPC(e.target.files[0],close);
     sh.querySelector('#exc').onclick=()=>{const t=JSON.stringify(S);try{navigator.clipboard.writeText(t).then(()=>toast('Копия в буфере - вставь её себе в Избранное в телеграме'),()=>toast('Не получилось скопировать'))}catch(e){toast('Не получилось скопировать')}};
     sh.querySelector('#im').onclick=()=>sh.querySelector('#imf').click();
     sh.querySelector('#imf').onchange=e=>importData(e.target.files[0],close);
@@ -577,6 +635,60 @@ function bindSetup(){
     else{const ls=$('#ls').value,ll=c.dur;if(ls)for(let i=0;i<ll;i++){const k=add(ls,i);if(k<=today())S.days[k]={flow:i<2?3:2,sym:[],note:''}}}
     S.setup=true;S.since=today();save();render();
   };
+}
+
+/* ---------- импорт из "Мой календарь" ---------- */
+async function pcFiles(buf){
+  let u=new Uint8Array(buf);
+  if(u[0]===0xAC&&u[1]===0xED){const parts=[];let i=4;
+    while(i<u.length){const t=u[i];if(t===0x7A){const n=((u[i+1]<<24)|(u[i+2]<<16)|(u[i+3]<<8)|u[i+4])>>>0;parts.push(u.subarray(i+5,i+5+n));i+=5+n}else if(t===0x77){const n=u[i+1];parts.push(u.subarray(i+2,i+2+n));i+=2+n}else break}
+    const o=new Uint8Array(parts.reduce((a,p)=>a+p.length,0));let q=0;parts.forEach(x=>{o.set(x,q);q+=x.length});u=o}
+  let z=-1;for(let i=0;i<u.length-3;i++)if(u[i]===0x50&&u[i+1]===0x4b&&u[i+2]===3&&u[i+3]===4){z=i;break}
+  if(z<0)throw new Error('nozip');u=u.slice(z);
+  const dv=new DataView(u.buffer);let e=-1;
+  for(let i=u.length-22;i>=0;i--)if(dv.getUint32(i,true)===0x06054b50){e=i;break}
+  if(e<0)throw new Error('noeocd');
+  const cnt=dv.getUint16(e+10,true);let cd=dv.getUint32(e+16,true);const files={};
+  for(let n=0;n<cnt;n++){
+    const meth=dv.getUint16(cd+10,true),csz=dv.getUint32(cd+20,true),nl=dv.getUint16(cd+28,true),el=dv.getUint16(cd+30,true),cl=dv.getUint16(cd+32,true),off=dv.getUint32(cd+42,true);
+    const name=new TextDecoder().decode(u.subarray(cd+46,cd+46+nl));
+    const ds=off+30+dv.getUint16(off+26,true)+dv.getUint16(off+28,true);
+    files[name]={meth,data:u.slice(ds,ds+csz)};cd+=46+nl+el+cl;
+  }
+  return files;
+}
+async function pcRead(f){
+  let b=f.data;
+  if(f.meth===8)b=new Uint8Array(await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+  const s=new TextDecoder().decode(b),K='Period';let o='';
+  for(let i=0;i<s.length;i++)o+=i%2?s[i]:String.fromCharCode(s.charCodeAt(i)^K.charCodeAt((i>>1)%K.length));
+  try{return JSON.parse(o)}catch(e){try{return JSON.parse(o.slice(0,-1)+']')}catch(e2){return null}}
+}
+async function importPC(file,close){
+  if(!file)return;
+  try{
+    const fs=await pcFiles(await file.arrayBuffer());
+    const per=fs['1.period']?await pcRead(fs['1.period']):null;
+    const notes=fs['1.note']?await pcRead(fs['1.note']):[];
+    if(!per)throw new Error('noperiod');
+    let np=0,nn=0,nw=0;const t=today();
+    for(const p of per){
+      const st=p.date_str;if(!/^\d{4}-\d\d-\d\d$/.test(st))continue;
+      const len=Math.min(15,Math.max(1,Math.abs(+p.period||4)+1));np++;
+      for(let i=0;i<len;i++){const k=add(st,i);if(k>t)break;S.days[k]=S.days[k]||{sym:[],note:''};if(!S.days[k].flow)S.days[k].flow=i<2?3:2}
+      if(add(st,len-1)<t)S.ended[st]=true;
+    }
+    for(const n of (notes||[])){
+      const k=n.date_str;if(!/^\d{4}-\d\d-\d\d$/.test(k))continue;
+      const d=S.days[k]=S.days[k]||{sym:[],note:''};
+      if(n.note&&n.note.trim()){const tx=n.note.trim();if(!(d.note||'').includes(tx)){d.note=d.note?d.note+'\n'+tx:tx;nn++}}
+      if(n.weight>0&&!d.w){d.w=Math.round(n.weight*0.45359237*10)/10;nw++}
+      if(n.temperature>0&&!d.temp){const tc=n.temperature>50?(n.temperature-32)*5/9:n.temperature;d.temp=Math.round(tc*10)/10}
+      if(n.symptom&&typeof n.symptom==='string'&&n.symptom.trim()){d.note=d.note?d.note+'\n'+n.symptom.trim():n.symptom.trim()}
+      clean(k);
+    }
+    save();close();toast(`Перенесено: ${np} ${plural(np,'месячные','месячных','месячных')}, ${nn} ${plural(nn,'заметка','заметки','заметок')}${nw?', вес':''}`);
+  }catch(e){toast('Не получилось прочитать файл. Это точно копия из "Мой календарь"?')}
 }
 
 /* ---------- копии и сводка ---------- */
