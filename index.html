@@ -1283,7 +1283,25 @@ if(YD.justIn){YD.justIn=false;toast('Яндекс Диск подключён');
 ydSync();setInterval(()=>ydSync(),5*60000);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)hiddenAt=Date.now();else{nativeSchedule();if(pinHash()&&hiddenAt&&Date.now()-hiddenAt>60000)lockNow();ydSync()}});
 lockNow();if(!pinHash())runAct();nativeSchedule();apkCheck();if(APP&&S.setup){try{if(!AndroidApp.notificationsAllowed()&&!S.nfAsked){S.nfAsked=1;saveLocal();AndroidApp.askNotifications()}}catch(e){}}
-if('serviceWorker' in navigator&&location.protocol==='https:'){try{navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}}
+if('serviceWorker' in navigator&&location.protocol==='https:'){
+  try{
+    navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(reg=>{
+      // Check for a new website build when the APK is opened again.
+      const check=()=>{if(navigator.onLine)reg.update().catch(()=>{})};
+      document.addEventListener('visibilitychange',()=>{if(!document.hidden)check()});
+      window.addEventListener('pageshow',check);
+      check();
+    }).catch(()=>{});
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      // Reload only once per new controller to avoid loops; localStorage is retained.
+      if(!sessionStorage.getItem('luna-sw-refresh')){
+        sessionStorage.setItem('luna-sw-refresh','1');
+        location.reload();
+      }
+    });
+    window.addEventListener('pageshow',()=>sessionStorage.removeItem('luna-sw-refresh'));
+  }catch(e){}
+}
 </script>
 </body>
 </html>
