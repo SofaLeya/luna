@@ -1,31 +1,23 @@
-// Luna: network-first app shell, offline fallback without touching user data.
-const CACHE='luna-shell-v14';
-const FILES=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./icon-maskable-192.png','./icon-maskable-512.png'];
-self.addEventListener('install',event=>{
-  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)));
-  self.skipWaiting();
+// Luna: fresh network first, cached app shell only when offline.
+const CACHE='luna-shell-v15';
+self.addEventListener('install',e=>{self.skipWaiting()});
+self.addEventListener('activate',e=>{
+  e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('luna-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
 });
-self.addEventListener('activate',event=>{
-  event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('luna-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
-});
-self.addEventListener('fetch',event=>{
-  const req=event.request;
-  const url=new URL(req.url);
+self.addEventListener('fetch',e=>{
+  const req=e.request,url=new URL(req.url);
   if(req.method!=='GET'||url.origin!==self.location.origin)return;
-  // Never cache OAuth callback URLs or other query-string requests.
-  if(url.search)return;
-  event.respondWith(
-    fetch(req,{cache:'no-store'}).then(response=>{
-      if(response.ok&&response.type==='basic'){
-        const copy=response.clone();
-        event.waitUntil(caches.open(CACHE).then(cache=>cache.put(req,copy)));
-      }
+  if(url.pathname.endsWith('/version.txt')||url.searchParams.has('luna_refresh'))return;
+  e.respondWith((async()=>{
+    try{
+      const response=await fetch(req,{cache:'no-store'});
+      if(response.ok){const cache=await caches.open(CACHE);e.waitUntil(cache.put(req,response.clone()))}
       return response;
-    }).catch(async()=>{
+    }catch(err){
       const cached=await caches.match(req);
       if(cached)return cached;
-      if(req.mode==='navigate')return caches.match('./index.html');
+      if(req.mode==='navigate')return await caches.match('./index.html')||Response.error();
       return Response.error();
-    })
-  );
+    }
+  })());
 });
