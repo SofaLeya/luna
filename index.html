@@ -52,6 +52,7 @@ header h1 span{color:var(--rose)}
 .hbtn{justify-content:center;margin-top:14px}
 .btn.main.sm2{width:auto;font-size:16px;padding:12px 20px}
 .pt{font-weight:600}
+.linkbtn{display:block;margin:12px auto 0;font-size:14px;color:var(--mut);text-decoration:underline;text-underline-offset:3px}
 .minis{display:flex;gap:8px;width:100%}
 .minis div{flex:1;background:var(--bg2);border-radius:12px;padding:8px;text-align:center}
 .minis span{display:block;font-size:11px;color:var(--mut)}
@@ -246,9 +247,10 @@ function hero(t){
   if(cp&&cp.today){
     const left=C().dur-cp.day;
     h+=`<div class="hb">${cp.day}-й день</div><div class="hs">${cp.closed?'отмечено, что сегодня последний день':left>0?'по плану ещё ~'+D(left):'по плану уже должны заканчиваться'}</div>`;
-    if(!cp.closed)h+=`<div class="row hbtn"><button class="btn" data-end>Сегодня последний день</button></div>`;
+    h+=cp.closed?`<div class="row hbtn"><button class="btn" data-reopen>Нет, ещё идут</button></div>`:`<div class="row hbtn"><button class="btn" data-end>Сегодня последний день</button></div>`;
+    h+=`<button class="linkbtn" data-cancel>Отменить месячные</button>`;
   }else if(cp){
-    h+=`<div class="hb">${cp.day}-й день?</div><div class="hs">Вчера были. Сегодня ещё идут?</div><div class="row hbtn"><button class="btn main sm2" data-cont>Да, идут</button><button class="btn" data-end>Нет, закончились</button></div>`;
+    h+=`<div class="hb">${cp.day}-й день?</div><div class="hs">Вчера были. Сегодня ещё идут?</div><div class="row hbtn"><button class="btn main sm2" data-cont>Да, идут</button><button class="btn" data-end>Нет, закончились</button></div><button class="linkbtn" data-cancel>Отменить месячные</button>`;
   }else{
     const n=S.mode==='natural'?natural():null;
     const late=n&&n.next&&n.next<t?diff(n.next,t):0;
@@ -396,6 +398,15 @@ function bindView(){
   document.querySelectorAll('[data-start]').forEach(b=>b.onclick=()=>{const t=today();S.days[t]=S.days[t]||{};S.days[t].flow=Math.max(S.days[t].flow||0,3);save();render();toast('Отмечено: месячные начались')});
   document.querySelectorAll('[data-cont]').forEach(b=>b.onclick=()=>{const t=today(),y=S.days[add(t,-1)];S.days[t]=S.days[t]||{};S.days[t].flow=y&&y.flow?y.flow:2;save();render()});
   document.querySelectorAll('[data-end]').forEach(b=>b.onclick=()=>{const cp=curPeriod(today());if(cp){S.ended[cp.e.start]=true;save();render();toast('Отмечено, что закончились',()=>{delete S.ended[cp.e.start];save();render()})}});
+  document.querySelectorAll('[data-reopen]').forEach(b=>b.onclick=()=>{const cp=curPeriod(today());if(cp){delete S.ended[cp.e.start];save();render()}});
+  document.querySelectorAll('[data-cancel]').forEach(b=>{let arm=false;b.onclick=()=>{
+    const cp=curPeriod(today());if(!cp)return;
+    if(!arm){arm=true;b.textContent='Точно отменить? Нажми ещё раз';setTimeout(()=>{arm=false;b.textContent='Отменить месячные'},4000);return}
+    const e=cp.e,saved={};
+    for(let k=e.start;k<=e.end;k=add(k,1))if(S.days[k]){saved[k]=S.days[k].flow;S.days[k].flow=0;clean(k)}
+    const wasEnded=S.ended[e.start];delete S.ended[e.start];save();render();
+    toast('Месячные отменены',()=>{for(const k in saved){S.days[k]=S.days[k]||{sym:[],note:''};S.days[k].flow=saved[k]}if(wasEnded)S.ended[e.start]=true;save();render()});
+  }});
   const np=$('#newpack');if(np)np.onclick=()=>{startPack(today())};
   const pm=$('#pm'),nm=$('#nm');
   if(pm){pm.onclick=()=>{calM=shiftM(calM,-1);render()};nm.onclick=()=>{calM=shiftM(calM,1);render()}}
