@@ -128,6 +128,23 @@ label.f{display:block;margin:12px 0 5px;font-size:14px;color:var(--mut)}
 .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#2b1b2b;border:1px solid var(--line);padding:10px 16px;border-radius:14px;z-index:30;font-size:14px;display:flex;gap:12px;align-items:center;box-shadow:0 8px 30px #0008}
 .toast button{color:var(--rose);font-weight:700}
 .hide{display:none!important}
+.petc{display:flex;align-items:center;gap:12px;padding:10px 14px}
+.pet{position:relative;width:96px;height:104px;flex:none}
+.pet svg{width:100%;height:100%;animation:bob 3.2s ease-in-out infinite;transform-origin:50% 100%}
+.pet .peyes{transform-box:fill-box;transform-origin:center;animation:blink 5.5s infinite}
+.pet.hop svg{animation:hop .55s ease}
+.pet .heart{position:absolute;left:50%;top:0;font-size:20px;animation:fly 1s ease forwards;pointer-events:none}
+.bub{position:relative;flex:1;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:10px 12px;font-size:15px}
+.bub:before{content:'';position:absolute;left:-7px;top:50%;margin-top:-6px;border:6px solid transparent;border-right-color:var(--line);border-left:0}
+@keyframes bob{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-3px) scaleY(1.015)}}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+@keyframes hop{0%{transform:translateY(0)}35%{transform:translateY(-16px) rotate(-4deg)}70%{transform:translateY(0) scaleY(.94)}100%{transform:none}}
+@keyframes fly{from{opacity:1;transform:translate(-50%,0)}to{opacity:0;transform:translate(-50%,-40px)}}
+.petgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ptile{background:var(--bg2);border:1.5px solid var(--line);border-radius:14px;padding:6px 2px 4px;display:flex;flex-direction:column;align-items:center}
+.ptile svg{width:60px;height:64px}
+.ptile span{font-size:11px;color:var(--mut)}
+.ptile.on{border-color:var(--rose);background:#3a1a2c}
 .hm{display:grid;grid-template-columns:auto 1fr;gap:4px 8px;align-items:center}
 .hml{font-size:12px;color:var(--mut);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hmr{display:grid;grid-template-columns:repeat(35,1fr);gap:1px}
@@ -172,7 +189,7 @@ const PRESETS=[
   {id:'cont',name:'Без перерыва',active:28,inactive:0,type:'placebo',hint:'пью активные подряд'}
 ];
 let S=load();
-function def(){return{v:1,setup:false,since:null,mode:'pill',pill:{name:'Ярина Плюс',preset:'21p7',active:21,inactive:7,type:'placebo',time:'21:00',packs:[],stock:null,skip:{}},taken:{},days:{},ended:{},plans:[],brk:{},compact:false,visits:[],dism:{},cyc:{len:28,auto:true,dur:5,after:2}}}
+function def(){return{v:1,setup:false,since:null,mode:'pill',pill:{name:'Ярина Плюс',preset:'21p7',active:21,inactive:7,type:'placebo',time:'21:00',packs:[],stock:null,skip:{}},taken:{},days:{},ended:{},plans:[],brk:{},compact:false,visits:[],dism:{},pet:'kitty',cyc:{len:28,auto:true,dur:5,after:2}}}
 function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);return Object.assign(def(),o,{pill:Object.assign(def().pill,o.pill||{}),cyc:Object.assign(def().cyc,o.cyc||{})})}}catch(e){}return def()}
 function fixS(o){return Object.assign(def(),o,{pill:Object.assign(def().pill,o.pill||{}),cyc:Object.assign(def().cyc,o.cyc||{})})}
 function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Не получилось сохранить в браузере - сделай копию в настройках')}}
@@ -359,7 +376,7 @@ function todayView(){
       const nxt=P().type==='placebo'?'плацебо':'перерыв';
       h+=`<div class="alert info"><b>${pi.day===P().active?'Сегодня':'Завтра'} последняя активная таблетка</b>Потом ${nxt} и месячные. Делаем перерыв или отменяем месячные?<div class="row"><button class="btn small" data-brk="${pi.start}">Делаю перерыв</button><button class="btn small" data-skip="${pi.start}">🚫 Отменить месячные</button></div></div>`;
     }
-    h+=softAlerts(t)+hero(t);
+    h+=petCard(t)+softAlerts(t)+hero(t);
     const tk=S.taken[t];let btn;
     const phase=pi.active?'активная':P().type==='placebo'?'плацебо (пустышка)':'перерыв';
     if(!pi.active&&P().type==='break')btn=`<div class="mut sm" style="text-align:center">Сегодня таблетку не пьём. Новая пачка - ${fmtW(add(pi.end,1))}</div>`;
@@ -371,7 +388,7 @@ function todayView(){
     }else
     h+=`<div class="card ring-box"><div class="pt">💊 ${esc(P().name)} <span class="mut">в ${P().time}</span> <button class="linkbtn" style="display:inline;margin:0 0 0 6px" data-compact>свернуть</button></div><div class="ring">${ringSVG(pi)}<div class="c"><div class="big">${pi.day}</div><div class="of">таблетка из ${pi.len}</div><div class="ph">${phase}</div></div></div>${btn}
     ${skipBtn(pi,t)}<div class="minis"><div><span>последняя активная</span><b>${fmtShort(add(pi.start,P().active-1))}</b></div><div><span>новая пачка</span><b>${fmtShort(add(pi.end,1))}</b></div>${P().stock!==null?`<div><span>в запасе</span><b>${P().stock}</b></div>`:''}</div></div>`;
-  }else h+=softAlerts(t)+hero(t);
+  }else h+=petCard(t)+softAlerts(t)+hero(t);
   const dd=S.days[t]||{};
   h+=`<div class="card"><h3>Как сегодня</h3><div class="chips">${FLOW.map((f,i)=>`<button class="chip flow-${i} ${(dd.flow||0)===i?'on':''}" data-flow="${i}">${i?'🩸 ':''}${f}</button>`).join('')}</div>
   <div class="row" style="margin-top:10px"><button class="btn small" data-day="${t}">Самочувствие и заметка${(dd.sym&&dd.sym.length)||dd.note?' ✎':''}</button></div></div>`;
@@ -612,6 +629,7 @@ function bindView(){
   document.querySelectorAll('[data-skip]').forEach(b=>armed(b,()=>{P().skip=P().skip||{};P().skip[b.dataset.skip]=true;save();render();toast('Месячные в этой пачке отменены',()=>{delete P().skip[b.dataset.skip];save();render()})}));
   document.querySelectorAll('[data-unskip]').forEach(b=>b.onclick=()=>{delete P().skip[b.dataset.unskip];save();render();toast('Перерыв вернулся')});
   document.querySelectorAll('[data-skipnow]').forEach(b=>armed(b,()=>{const t=today(),old=[...P().packs],st=P().stock;startPack(t);toast('Новая пачка с сегодня',()=>{P().packs=old;P().stock=st;save();render()})}));
+  const pb=$('#petb');if(pb)pb.onclick=petTap;
   document.querySelectorAll('[data-compact]').forEach(b=>b.onclick=()=>{S.compact=!S.compact;save();render()});
   document.querySelectorAll('[data-brk]').forEach(b=>b.onclick=()=>{S.brk=S.brk||{};S.brk[b.dataset.brk]=true;save();render();toast('Хорошо, перерыв как обычно')});
   document.querySelectorAll('[data-dism]').forEach(b=>b.onclick=()=>{S.dism=S.dism||{};S.dism[b.dataset.dism]=1;save();render()});
@@ -758,6 +776,7 @@ function openSettings(){
     <label class="f">Пачек в запасе (оставь пустым, если не считать)</label><input id="pk" type="number" min="0" max="50" value="${p.stock===null?'':p.stock}">
   </div>
   <h4>Синхронизация</h4><div id="ydbox">${ydBox()}</div>
+  <h4>Питомец</h4><div class="petgrid" id="petpick"></div>
   <h4>Мой список самочувствия</h4>
   <div class="chips" id="syl"></div>
   <div class="row" style="margin-top:8px;flex-wrap:nowrap"><input id="sya" placeholder="добавить, например: спина"><button class="btn small" id="syb">+</button></div>
@@ -783,7 +802,7 @@ function openSettings(){
     drawSy();
     const addSy=()=>{const v=sh.querySelector('#sya').value.trim();if(!v)return;if(!sl.includes(v))sl.push(v);S.symList=[...sl];save();sh.querySelector('#sya').value='';drawSy()};
     sh.querySelector('#syb').onclick=addSy;sh.querySelector('#sya').onkeydown=e=>{if(e.key==='Enter')addSy()};
-    drawPinBox(sh);
+    drawPinBox(sh);petPicker(sh);
     sh.querySelector('#pcb').onclick=()=>sh.querySelector('#pcf').click();
     sh.querySelector('#pcf').onchange=e=>importPC(e.target.files[0],close);
     sh.querySelector('#exc').onclick=()=>{const t=JSON.stringify(S);try{navigator.clipboard.writeText(t).then(()=>toast('Копия в буфере - вставь её себе в Избранное в телеграме'),()=>toast('Не получилось скопировать'))}catch(e){toast('Не получилось скопировать')}};
@@ -838,6 +857,108 @@ function bindSetup(){
     else{const ls=$('#ls').value,ll=c.dur;if(ls)for(let i=0;i<ll;i++){const k=add(ls,i);if(k<=today())S.days[k]={flow:i<2?3:2,sym:[],note:''}}}
     S.setup=true;S.since=today();save();render();
   };
+}
+
+/* ---------- питомцы (свои рисунки) ---------- */
+const PETS={
+  kitty:{n:'Котик',b:'#f4a259',bl:'#fde6c8',in:'#f7a8b8',ears:'cat',tail:'cat',mark:'stripes',snd:'Мур!'},
+  bunny:{n:'Зайка',b:'#f3edf2',bl:'#ffffff',in:'#f7b6c8',ears:'bunny',tail:'puff',snd:'Хрум-хрум!'},
+  fox:{n:'Лисичка',b:'#ef8445',bl:'#fff3e6',in:'#fff3e6',ears:'fox',tail:'fox',mark:'foxcheek',snd:'Фыр!'},
+  panda:{n:'Панда',b:'#f7f7f7',bl:'#ffffff',ears:'round',earc:'#2b2b33',limb:'#2b2b33',mark:'panda',snd:'Бамбук?'},
+  penguin:{n:'Пингвин',b:'#3b4256',bl:'#f4f4f7',ears:'none',mark:'penguin',beak:1,feet:'#f5a142',snd:'Топ-топ!'},
+  koala:{n:'Коала',b:'#aeb8c6',bl:'#dfe5ec',in:'#f2c1cf',ears:'fluffy',nose:'koala',snd:'Обнимашки!'},
+  owl:{n:'Совёнок',b:'#a2714f',bl:'#e9d3b5',ears:'tuft',mark:'owl',beak:1,feet:'#f0b44c',snd:'Ух-ух!'},
+  llama:{n:'Лама',b:'#f1e1c6',bl:'#fbf3e6',in:'#f2b8c6',ears:'llama',mark:'fluff',snd:'Пфф!'},
+  hedgehog:{n:'Ёжик',b:'#e8c9a3',bl:'#f6e6d0',ears:'small',in:'#e7a98a',back:'spikes',spike:'#7a5638',snd:'Фыр-фыр!'},
+  corgi:{n:'Корги',b:'#f0a24e',bl:'#fff5ea',in:'#f7b9a4',ears:'corgi',mark:'muzzle',nose:'dog',tail:'puff',snd:'Гав!'},
+  unicorn:{n:'Единорог',b:'#fbf7fb',bl:'#ffffff',in:'#f6bfd4',ears:'cat',mark:'mane',horn:1,snd:'Иго-го ✨'},
+  axolotl:{n:'Аксолотль',b:'#f7b2c9',bl:'#fcd6e2',ears:'gills',tail:'axo',snd:'Буль!'}
+};
+function petSVG(id,mood,cls){
+  const p=PETS[id];if(!p)return '';
+  const B=p.b,BL=p.bl,IN=p.in||'#f5b5c5',LM=p.limb||B,D='#2a2230';
+  let back='',ears='',marks='',top='',eyes='',mouth='',arms='',fx='';
+  if(p.tail==='cat')back+=`<path d="M82 100 C104 98 106 74 95 70" stroke="${B}" stroke-width="8" fill="none" stroke-linecap="round"/>`;
+  if(p.tail==='fox')back+=`<path d="M78 102 C110 106 114 72 96 64 C104 80 96 94 80 94Z" fill="${B}"/><path d="M96 64 C105 70 107 80 104 87 C100 78 97 71 96 64Z" fill="#fff6ee"/>`;
+  if(p.tail==='puff')back+=`<circle cx="86" cy="104" r="7" fill="${BL}"/>`;
+  if(p.tail==='axo')back+=`<path d="M80 104 C102 112 114 98 110 84 C102 96 92 98 80 94Z" fill="${B}"/>`;
+  if(p.back==='spikes'){let sp='';for(let i=0;i<13;i++){const a=(-175+i*14)*Math.PI/180,x=60+50*Math.cos(a),y=60+46*Math.sin(a),x1=60+32*Math.cos(a-.13),y1=60+29*Math.sin(a-.13),x2=60+32*Math.cos(a+.13),y2=60+29*Math.sin(a+.13);sp+=`M${x1.toFixed(1)} ${y1.toFixed(1)}L${x.toFixed(1)} ${y.toFixed(1)}L${x2.toFixed(1)} ${y2.toFixed(1)}Z`}
+    back+=`<path d="${sp}" fill="${p.spike}"/><ellipse cx="60" cy="96" rx="31" ry="23" fill="${p.spike}"/>`}
+  switch(p.ears){
+    case 'cat':ears=`<path d="M30 46 L35 14 L55 32Z" fill="${B}"/><path d="M90 46 L85 14 L65 32Z" fill="${B}"/><path d="M36 39 L38 22 L49 33Z" fill="${IN}"/><path d="M84 39 L82 22 L71 33Z" fill="${IN}"/>`;break;
+    case 'fox':ears=`<path d="M28 48 L32 8 L58 30Z" fill="${B}"/><path d="M92 48 L88 8 L62 30Z" fill="${B}"/><path d="M34 40 L35 18 L50 32Z" fill="${IN}"/><path d="M86 40 L85 18 L70 32Z" fill="${IN}"/><path d="M30.5 18 L32 8 L37 13Z" fill="#3a2a2a"/><path d="M89.5 18 L88 8 L83 13Z" fill="#3a2a2a"/>`;break;
+    case 'bunny':ears=`<g transform="rotate(-10 46 22)"><ellipse cx="46" cy="10" rx="9" ry="24" fill="${B}"/><ellipse cx="46" cy="12" rx="4.5" ry="16" fill="${IN}"/></g><g transform="rotate(10 74 22)"><ellipse cx="74" cy="10" rx="9" ry="24" fill="${B}"/><ellipse cx="74" cy="12" rx="4.5" ry="16" fill="${IN}"/></g>`;break;
+    case 'round':ears=`<circle cx="33" cy="31" r="11" fill="${p.earc}"/><circle cx="87" cy="31" r="11" fill="${p.earc}"/>`;break;
+    case 'fluffy':ears=`<circle cx="27" cy="40" r="16" fill="${B}"/><circle cx="93" cy="40" r="16" fill="${B}"/><circle cx="28" cy="41" r="9" fill="${IN}"/><circle cx="92" cy="41" r="9" fill="${IN}"/>`;break;
+    case 'tuft':ears=`<path d="M30 40 L28 16 L48 30Z" fill="${B}"/><path d="M90 40 L92 16 L72 30Z" fill="${B}"/>`;break;
+    case 'llama':ears=`<g transform="rotate(-18 40 26)"><ellipse cx="40" cy="22" rx="6" ry="15" fill="${B}"/><ellipse cx="40" cy="24" rx="3" ry="9" fill="${IN}"/></g><g transform="rotate(18 80 26)"><ellipse cx="80" cy="22" rx="6" ry="15" fill="${B}"/><ellipse cx="80" cy="24" rx="3" ry="9" fill="${IN}"/></g>`;break;
+    case 'small':ears=`<circle cx="37" cy="33" r="8" fill="${B}"/><circle cx="83" cy="33" r="8" fill="${B}"/><circle cx="37" cy="33" r="4" fill="${IN}"/><circle cx="83" cy="33" r="4" fill="${IN}"/>`;break;
+    case 'corgi':ears=`<path d="M26 50 L28 6 L58 30Z" fill="${B}"/><path d="M94 50 L92 6 L62 30Z" fill="${B}"/><path d="M33 42 L33 16 L50 31Z" fill="${IN}"/><path d="M87 42 L87 16 L70 31Z" fill="${IN}"/>`;break;
+    case 'gills':['-35','0','35'].forEach((r,i)=>{const y=[44,56,68][i];ears+=`<ellipse cx="22" cy="${y}" rx="12" ry="4.5" fill="#e8789f" transform="rotate(${r} 30 ${y})"/><ellipse cx="98" cy="${y}" rx="12" ry="4.5" fill="#e8789f" transform="rotate(${-r} 90 ${y})"/>`});break;
+  }
+  switch(p.mark){
+    case 'stripes':marks=`<path d="M55 27 L57 36 M61 26 L61 36 M67 27 L65 36" stroke="#d9823c" stroke-width="3" stroke-linecap="round"/>`;break;
+    case 'foxcheek':marks=`<path d="M25 58 C32 82 52 88 60 78 C68 88 88 82 95 58 C84 70 70 66 60 71 C50 66 36 70 25 58Z" fill="#fff4e8"/>`;break;
+    case 'panda':marks=`<ellipse cx="46" cy="58" rx="9" ry="11" fill="#2b2b33" transform="rotate(25 46 58)"/><ellipse cx="74" cy="58" rx="9" ry="11" fill="#2b2b33" transform="rotate(-25 74 58)"/>`;break;
+    case 'penguin':marks=`<path d="M60 36 C46 26 28 38 31 58 C33 76 47 84 60 84 C73 84 87 76 89 58 C92 38 74 26 60 36Z" fill="#f4f4f7"/>`;break;
+    case 'owl':marks=`<circle cx="46" cy="57" r="12" fill="#f3e3cc"/><circle cx="74" cy="57" r="12" fill="#f3e3cc"/>`;break;
+    case 'fluff':top=`<circle cx="50" cy="28" r="9" fill="#fbf3e6"/><circle cx="60" cy="24" r="10" fill="#fbf3e6"/><circle cx="70" cy="28" r="9" fill="#fbf3e6"/>`;break;
+    case 'muzzle':marks=`<path d="M60 30 C56 44 54 58 46 66 C50 80 70 80 74 66 C66 58 64 44 60 30Z" fill="#fff5ea"/>`;break;
+    case 'mane':top=`<path d="M60 22 L56 2 L66 22Z" fill="#f2c94c"/><path d="M57.5 14 L63.5 12 M57 8 L61 7" stroke="#e0a82e" stroke-width="1.5"/><ellipse cx="44" cy="28" rx="13" ry="7" fill="#c9a7f2" transform="rotate(-25 44 28)"/><ellipse cx="32" cy="38" rx="11" ry="6" fill="#f6a7c8" transform="rotate(-55 32 38)"/><ellipse cx="28" cy="52" rx="9" ry="5" fill="#9fd3f2" transform="rotate(-80 28 52)"/>`;break;
+  }
+  const EC=p.mark==='panda'?'#ffffff':D;
+  const E=(x)=>mood==='sleep'||mood==='cozy'?`<path d="M${x-5} 57 Q${x} 62 ${x+5} 57" stroke="${EC}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`
+    :mood==='happy'?`<path d="M${x-5} 60 Q${x} 53 ${x+5} 60" stroke="${EC}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`
+    :p.mark==='panda'?`<ellipse cx="${x}" cy="58" rx="4.4" ry="5.2" fill="#fff"/><circle cx="${x+.5}" cy="58.5" r="2.8" fill="${D}"/><circle cx="${x+1.4}" cy="57.2" r="1" fill="#fff"/>`
+    :`<ellipse cx="${x}" cy="58" rx="4.6" ry="5.6" fill="${D}"/><circle cx="${x+1.6}" cy="56" r="1.8" fill="#fff"/>`;
+  eyes=`<g class="peyes">${E(46)}${E(74)}</g>`;
+  const blush=`<ellipse cx="38" cy="68" rx="5.5" ry="3.2" fill="#ff8fb3" opacity=".55"/><ellipse cx="82" cy="68" rx="5.5" ry="3.2" fill="#ff8fb3" opacity=".55"/>`;
+  if(p.beak)mouth=`<path d="M55 65 L65 65 L60 72Z" fill="#f5a142"/>`;
+  else{
+    if(p.nose==='koala')mouth+=`<ellipse cx="60" cy="65" rx="6" ry="5" fill="#3b3640"/>`;
+    else if(p.nose==='dog')mouth+=`<ellipse cx="60" cy="64" rx="4" ry="3" fill="#3b3640"/>`;
+    else mouth+=`<ellipse cx="60" cy="64" rx="2" ry="1.4" fill="#e07a95"/>`;
+    mouth+=mood==='happy'?`<path d="M55 69 Q60 77 65 69Z" fill="#c2415f"/>`:`<path d="M55 69 Q57.5 72 60 69 Q62.5 72 65 69" stroke="${D}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+  }
+  if(mood==='cozy')arms=`<g><rect x="47" y="86" width="26" height="21" rx="8" fill="#e5484d"/><rect x="55.5" y="81" width="9" height="6" rx="2" fill="#b83236"/><path d="M52 93 h16 M52 98 h16" stroke="#ff8a8e" stroke-width="2"/></g><ellipse cx="45" cy="96" rx="6" ry="8" fill="${LM}" transform="rotate(-30 45 96)"/><ellipse cx="75" cy="96" rx="6" ry="8" fill="${LM}" transform="rotate(30 75 96)"/>`;
+  else if(mood==='happy')arms=`<ellipse cx="31" cy="82" rx="6" ry="10" fill="${LM}" transform="rotate(40 31 82)"/><ellipse cx="89" cy="82" rx="6" ry="10" fill="${LM}" transform="rotate(-40 89 82)"/>`;
+  else arms=`<ellipse cx="37" cy="94" rx="6" ry="9" fill="${LM}" transform="rotate(20 37 94)"/><ellipse cx="83" cy="94" rx="6" ry="9" fill="${LM}" transform="rotate(-20 83 94)"/>`;
+  if(mood==='sleep')fx=`<text x="94" y="30" font-size="14" font-weight="700" fill="#b9a6ff">z</text><text x="103" y="18" font-size="10" font-weight="700" fill="#b9a6ff">z</text>`;
+  if(mood==='happy')fx=`<path d="M100 30 l2.5 6 6 2.5 -6 2.5 -2.5 6 -2.5 -6 -6 -2.5 6 -2.5Z" fill="#ffd36e"/><path d="M16 44 l1.6 4 4 1.6 -4 1.6 -1.6 4 -1.6 -4 -4 -1.6 4 -1.6Z" fill="#ffd36e"/>`;
+  if(mood==='cozy')fx=`<path d="M98 34 c-3 -5 -10 -2 -6 4 l6 6 6 -6 c4 -6 -3 -9 -6 -4Z" fill="#ff8fb3"/>`;
+  const feet=p.feet||LM;
+  return `<svg class="${cls||''}" viewBox="0 -8 120 132" xmlns="http://www.w3.org/2000/svg"><ellipse cx="60" cy="119" rx="30" ry="4" fill="#000" opacity=".25"/>${back}${ears}
+<ellipse cx="60" cy="98" rx="27" ry="20" fill="${B}"/><ellipse cx="60" cy="102" rx="16" ry="12" fill="${BL}"/><ellipse cx="47" cy="116" rx="8" ry="5" fill="${feet}"/><ellipse cx="73" cy="116" rx="8" ry="5" fill="${feet}"/>
+<ellipse cx="60" cy="58" rx="35" ry="31" fill="${B}"/>${marks}${top}${eyes}${blush}${mouth}${arms}${fx}</svg>`;
+}
+function hash(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))|0;return Math.abs(h)}
+function pickBy(arr,seed){return arr[hash(seed)%arr.length]}
+function petSay(t){
+  const now=new Date(),h=now.getHours(),pi=S.mode==='pill'?packInfo(t):null,cp=curPeriod(t),seed=t+h;
+  if(h<7)return{m:'sleep',s:'Zzz… спокойной ночи 🌙'};
+  if(cp&&cp.today)return{m:'cozy',s:pickBy(['Грелку уже нагрела 🫖',`${cp.day}-й день. Я рядом 💗`,'Сегодня можно помедленнее','Плед, чай и сериал?','Обнимаю вместе с грелкой'],seed)};
+  if(pi&&pi.active&&!S.taken[t]){const late=(now-schedAt(t))/36e5;if(late>=0)return{m:'idle',s:`Таблетка ждёт 💊 (было в ${P().time})`};if(late>-3)return{m:'idle',s:`Таблетка сегодня в ${P().time} 💊`}}
+  if(pi&&S.taken[t])return{m:'happy',s:pickBy(['Таблетка выпита ✨','Галочка на месте!','Отмечено, молодец 💊','Всё по плану ✨'],seed)};
+  const ns=nextBleedStart(t);if(ns){const d=diff(t,ns);if(d>=1&&d<=3)return{m:'idle',s:`Через ${d} ${plural(d,'день','дня','дней')} месячные. Запасы на месте?`}}
+  if(h>=23)return{m:'sleep',s:'Пора баиньки 🌙'};
+  const cd=cycleDay(t);
+  return{m:'idle',s:pickBy([cd?`День цикла ${cd}. Всё спокойно 🌙`:'Привет! 🌙','Я тут 🐾','Как ты сегодня?',h<12?'Доброе утро ☀️':'Хорошего вечера ✨'],seed)};
+}
+function petCard(t){
+  if(!S.pet||S.pet==='none'||!PETS[S.pet])return '';
+  const ps=petSay(t);
+  return `<div class="card petc"><button class="pet" id="petb" aria-label="${PETS[S.pet].n}">${petSVG(S.pet,ps.m)}</button><div class="bub" id="petbub">${esc(ps.s)}</div></div>`;
+}
+function petTap(){
+  const b=document.getElementById('petb');if(!b)return;
+  b.classList.remove('hop');void b.offsetWidth;b.classList.add('hop');
+  const hrt=document.createElement('span');hrt.className='heart';hrt.textContent=pickBy(['💗','✨','💕','🌙'],String(Date.now()));b.appendChild(hrt);setTimeout(()=>hrt.remove(),1000);
+  const bub=document.getElementById('petbub');if(bub){bub.textContent=PETS[S.pet].snd;clearTimeout(window._pbt);window._pbt=setTimeout(()=>{bub.textContent=petSay(today()).s},2500)}
+}
+function petPicker(sh){
+  const box=sh.querySelector('#petpick');if(!box)return;
+  box.innerHTML=`<button class="ptile ${S.pet==='none'?'on':''}" data-pet="none"><div style="font-size:30px;line-height:64px">🚫</div><span>без питомца</span></button>`+Object.keys(PETS).map(id=>`<button class="ptile ${S.pet===id?'on':''}" data-pet="${id}">${petSVG(id,'idle')}<span>${PETS[id].n}</span></button>`).join('');
+  box.querySelectorAll('[data-pet]').forEach(b=>b.onclick=()=>{S.pet=b.dataset.pet;save();petPicker(sh)});
 }
 
 /* ---------- синхронизация через Яндекс Диск ----------
