@@ -1,4 +1,5 @@
 name: Сборка apk
+# Rebuild after Yandex OAuth client ID correction in web app
 
 on:
   push:
