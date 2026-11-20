@@ -227,7 +227,7 @@ const PRESETS=[
   {id:'cont',name:'Без перерыва',active:28,inactive:0,type:'placebo',hint:'пью активные подряд'}
 ];
 let S=load();
-function def(){return{v:1,setup:false,since:null,mode:'pill',pill:{name:'Ярина Плюс',preset:'21p7',active:21,inactive:7,type:'placebo',time:'21:00',packs:[],stock:null,skip:{}},taken:{},days:{},ended:{},plans:[],brk:{},compact:false,visits:[],dism:{},pet:'kitty',notif:{pill:true,again:true,period:true,last:true},cyc:{len:28,auto:true,dur:5,after:2}}}
+function def(){return{v:1,setup:false,since:null,mode:'pill',pill:{name:'Ярина Плюс',preset:'21p7',active:21,inactive:7,type:'placebo',time:'21:00',packs:[],stock:null,skip:{}},taken:{},days:{},ended:{},plans:[],brk:{},compact:true,visits:[],dism:{},pet:'kitty',notif:{pill:true,again:true,period:true,last:true},cyc:{len:28,auto:true,dur:5,after:2}}}
 function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);return Object.assign(def(),o,{pill:Object.assign(def().pill,o.pill||{}),cyc:Object.assign(def().cyc,o.cyc||{})})}}catch(e){}return def()}
 function fixS(o){return Object.assign(def(),o,{pill:Object.assign(def().pill,o.pill||{}),cyc:Object.assign(def().cyc,o.cyc||{}),notif:Object.assign(def().notif,o.notif||{})})}
 function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Не получилось сохранить в браузере - сделай копию в настройках')}if(typeof nativeSchedule==='function')nativeSchedule()}
@@ -420,7 +420,7 @@ function todayView(){
     if(!pi.active&&P().type==='break')btn=`<div class="mut sm" style="text-align:center">Сегодня таблетку не пьём. Новая пачка - ${fmtW(add(pi.end,1))}</div>`;
     else if(tk){const lh=lateH(t);btn=`<button class="btn done" data-unmark="${t}">✓ Выпила в ${new Date(tk.at).toTimeString().slice(0,5)}${lh>=12?' (опоздание)':''}</button>`}
     else btn=`<button class="btn main" data-mark="${t}">Выпила 💊</button>`;
-    if(true){
+    if(S.compact){
       const sb=!pi.active&&P().type==='break'?'<span class="mut sm">перерыв</span>':tk?`<button class="btn small" style="color:var(--ok)" data-unmark="${t}">✓ ${new Date(tk.at).toTimeString().slice(0,5)}</button>`:`<button class="btn main sm2" data-mark="${t}">Выпила</button>`;
       h+=`<div class="card"><div class="row" style="justify-content:space-between;flex-wrap:nowrap"><button data-compact style="text-align:left"><b>💊 ${esc(P().name)}</b><div class="mut sm">таблетка ${pi.day} из ${pi.len} · ${phase} ▾</div></button>${sb}</div></div>`;
     }else
