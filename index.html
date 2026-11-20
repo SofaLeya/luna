@@ -189,10 +189,10 @@ const PRESETS=[
   {id:'cont',name:'Без перерыва',active:28,inactive:0,type:'placebo',hint:'пью активные подряд'}
 ];
 let S=load();
-function def(){return{v:1,setup:false,since:null,mode:'pill',pill:{name:'Ярина Плюс',preset:'21p7',active:21,inactive:7,type:'placebo',time:'21:00',packs:[],stock:null,skip:{}},taken:{},days:{},ended:{},plans:[],brk:{},compact:false,visits:[],dism:{},pet:'kitty',cyc:{len:28,auto:true,dur:5,after:2}}}
+function def(){return{v:1,setup:false,since:null,mode:'pill',pill:{name:'Ярина Плюс',preset:'21p7',active:21,inactive:7,type:'placebo',time:'21:00',packs:[],stock:null,skip:{}},taken:{},days:{},ended:{},plans:[],brk:{},compact:false,visits:[],dism:{},pet:'kitty',notif:{pill:true,again:true,period:true,last:true},cyc:{len:28,auto:true,dur:5,after:2}}}
 function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);return Object.assign(def(),o,{pill:Object.assign(def().pill,o.pill||{}),cyc:Object.assign(def().cyc,o.cyc||{})})}}catch(e){}return def()}
-function fixS(o){return Object.assign(def(),o,{pill:Object.assign(def().pill,o.pill||{}),cyc:Object.assign(def().cyc,o.cyc||{})})}
-function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Не получилось сохранить в браузере - сделай копию в настройках')}}
+function fixS(o){return Object.assign(def(),o,{pill:Object.assign(def().pill,o.pill||{}),cyc:Object.assign(def().cyc,o.cyc||{}),notif:Object.assign(def().notif,o.notif||{})})}
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Не получилось сохранить в браузере - сделай копию в настройках')}if(typeof nativeSchedule==='function')nativeSchedule()}
 function save(){saveLocal();if(typeof ydOn==='function'&&ydOn()){ydSet({chg:Date.now()});clearTimeout(YD.t);YD.t=setTimeout(ydSync,2500)}}
 
 /* ---------- даты ---------- */
@@ -735,7 +735,7 @@ function openHelp(which){
   <p>🩸 <b>Месячные</b>: жми "Начались сегодня", потом каждый день приложение спросит, идут ли ещё. Прошлые дни можно отметить в календаре. Длину цикла и месячных меняй в настройках ⚙︎.</p>
   <p>🚫 <b>Отменить месячные</b>: на карточке таблеток нажми "Отменить месячные в этой пачке" - после последней активной сразу начнётся новая пачка, без плацебо.</p>
   <p>📦 <b>Новая пачка</b> начинается сама после последней таблетки. Если начала раньше или позже - открой этот день в календаре и нажми "С этого дня начала новую пачку".</p>
-  <p>⏰ <b>Напоминание.</b> Браузерные приложения не умеют надёжно будить телефон, поэтому поставь обычный будильник на ${P().time} с подписью "таблетка". Если откроешь приложение после этого времени и не отметишь - оно напомнит.</p>
+  <p>⏰ <b>Напоминание.</b> ${APP?'Уведомления о таблетке и месячных включаются в настройках ⚙︎ → "Уведомления".':'В браузере Луна не умеет будить телефон, поэтому поставь обычный будильник на '+P().time+'. В приложении для Android (apk) будут настоящие уведомления.'}</p>
   <p>🔒 <b>Данные</b> хранятся только на этом телефоне, никуда не отправляются. Делай иногда копию в настройках.</p>
   <p>Почему нет "овуляции" и "фертильных дней": на КОК овуляции нет, и такие прогнозы только путают.</p>
   <button class="btn full" id="tomiss" style="margin-top:8px">Что делать при пропуске</button></div>`;
@@ -776,6 +776,7 @@ function openSettings(){
     <label class="f">Пачек в запасе (оставь пустым, если не считать)</label><input id="pk" type="number" min="0" max="50" value="${p.stock===null?'':p.stock}">
   </div>
   <h4>Синхронизация</h4><div id="ydbox">${ydBox()}</div>
+  ${notifBox()}
   <h4>Питомец</h4><div class="petgrid" id="petpick"></div>
   <h4>Мой список самочувствия</h4>
   <div class="chips" id="syl"></div>
@@ -802,7 +803,7 @@ function openSettings(){
     drawSy();
     const addSy=()=>{const v=sh.querySelector('#sya').value.trim();if(!v)return;if(!sl.includes(v))sl.push(v);S.symList=[...sl];save();sh.querySelector('#sya').value='';drawSy()};
     sh.querySelector('#syb').onclick=addSy;sh.querySelector('#sya').onkeydown=e=>{if(e.key==='Enter')addSy()};
-    drawPinBox(sh);petPicker(sh);
+    drawPinBox(sh);petPicker(sh);bindNotif(sh);
     sh.querySelector('#pcb').onclick=()=>sh.querySelector('#pcf').click();
     sh.querySelector('#pcf').onchange=e=>importPC(e.target.files[0],close);
     sh.querySelector('#exc').onclick=()=>{const t=JSON.stringify(S);try{navigator.clipboard.writeText(t).then(()=>toast('Копия в буфере - вставь её себе в Избранное в телеграме'),()=>toast('Не получилось скопировать'))}catch(e){toast('Не получилось скопировать')}};
@@ -960,6 +961,42 @@ function petPicker(sh){
   box.innerHTML=`<button class="ptile ${S.pet==='none'?'on':''}" data-pet="none"><div style="font-size:30px;line-height:64px">🚫</div><span>без питомца</span></button>`+Object.keys(PETS).map(id=>`<button class="ptile ${S.pet===id?'on':''}" data-pet="${id}">${petSVG(id,'idle')}<span>${PETS[id].n}</span></button>`).join('');
   box.querySelectorAll('[data-pet]').forEach(b=>b.onclick=()=>{S.pet=b.dataset.pet;save();petPicker(sh)});
 }
+
+/* ---------- приложение для Android (apk): уведомления и цвет полосок ---------- */
+const APP=!!(window.AndroidApp&&window.AndroidApp.setSchedule);
+function nativeSchedule(){
+  if(!APP||!S.setup)return;
+  const N=Object.assign({pill:true,again:true,period:true,last:true},S.notif||{}),out=[],t=today(),now=Date.now();
+  for(let i=0;i<30;i++){
+    const k=add(t,i);
+    if(S.mode==='pill'){
+      const pi=packInfo(k);
+      if(pi&&pi.active&&!S.taken[k]){
+        const at=schedAt(k).getTime();
+        if(N.pill&&at>now)out.push({id:'p'+k,at,title:'Таблетка 💊',text:P().name+' - пора выпить. Нажми, чтобы отметить'});
+        if(N.pill&&N.again&&at+2*36e5>now)out.push({id:'p2'+k,at:at+2*36e5,title:'Таблетка ещё ждёт 💊',text:'Если уже выпила - отметь в Луне. До 12 часов опоздания - не страшно'});
+      }
+      if(N.last&&pi&&pi.active&&!pi.skipped&&P().inactive>0&&pi.day===P().active&&!(S.brk||{})[pi.start]){const d=parse(k);d.setHours(12,0,0,0);if(+d>now)out.push({id:'l'+k,at:+d,title:'Сегодня последняя активная таблетка',text:'Делаем перерыв или отменяем месячные?'})}
+    }
+    if(N.period&&predBleed(add(k,1))&&!predBleed(k)&&!(S.days[k]||{}).flow){const d=parse(k);d.setHours(10,0,0,0);if(+d>now)out.push({id:'b'+k,at:+d,title:'Завтра месячные 🩸',text:'Проверь запас прокладок и обезболивающего'})}
+  }
+  try{AndroidApp.setSchedule(JSON.stringify(out))}catch(e){}
+}
+function notifBox(){
+  if(!APP)return '';
+  const N=Object.assign({pill:true,again:true,period:true,last:true},S.notif||{});
+  let ok=true;try{ok=AndroidApp.notificationsAllowed()}catch(e){}
+  const cb=(k,txt)=>`<label class="row" style="gap:10px;margin-top:8px;font-size:15px;flex-wrap:nowrap"><input type="checkbox" data-nf="${k}" ${N[k]?'checked':''} style="width:20px;height:20px;flex:none"> ${txt}</label>`;
+  return `<h4>🔔 Уведомления</h4>${ok?'':'<div class="sm" style="color:var(--warn)">Android пока не разрешил Луне уведомления. <button class="btn small" id="nfask" style="margin-top:6px">Разрешить</button></div>'}
+  ${S.mode==='pill'?cb('pill','Таблетка - в '+P().time+' (время меняется выше)')+cb('again','Повторить через 2 часа, если не отмечена')+cb('last','Последняя активная: перерыв или отменить месячные?'):''}
+  ${cb('period','За день до месячных')}
+  <div class="dim sm" style="margin-top:6px">На заблокированном экране видно только "Луна", без подробностей.</div>`;
+}
+function bindNotif(sh){
+  sh.querySelectorAll('[data-nf]').forEach(c=>c.onchange=()=>{S.notif=Object.assign({},S.notif||{},{[c.dataset.nf]:c.checked});save()});
+  const a=sh.querySelector('#nfask');if(a)a.onclick=()=>{try{AndroidApp.askNotifications()}catch(e){}toast('Подтверди в окне Android')};
+}
+if(APP){try{AndroidApp.setBars('#0d080d')}catch(e){}}
 
 /* ---------- синхронизация через Яндекс Диск ----------
    Данные лежат у самой хозяйки: "Приложения/Луна" на её Диске. Приложение видит только эту папку.
@@ -1163,8 +1200,8 @@ function runAct(){if(!ACT||!S.setup)return;const t=today();
 render();
 if(YD.justIn){YD.justIn=false;toast('Яндекс Диск подключён');}
 ydSync();setInterval(()=>ydSync(),5*60000);
-document.addEventListener('visibilitychange',()=>{if(document.hidden)hiddenAt=Date.now();else{if(pinHash()&&hiddenAt&&Date.now()-hiddenAt>60000)lockNow();ydSync()}});
-lockNow();if(!pinHash())runAct();
+document.addEventListener('visibilitychange',()=>{if(document.hidden)hiddenAt=Date.now();else{nativeSchedule();if(pinHash()&&hiddenAt&&Date.now()-hiddenAt>60000)lockNow();ydSync()}});
+lockNow();if(!pinHash())runAct();nativeSchedule();if(APP&&S.setup){try{if(!AndroidApp.notificationsAllowed()&&!S.nfAsked){S.nfAsked=1;saveLocal();AndroidApp.askNotifications()}}catch(e){}}
 if('serviceWorker' in navigator&&location.protocol==='https:'){try{navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}}
 </script>
 </body>

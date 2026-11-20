@@ -222,3 +222,21 @@ test('синхронизация: второе устройство получа
   expect(await A.evaluate(`S.days['2026-11-16'].flow`)).toBe(2);
   await ca.close(); await cb.close();
 });
+
+test('apk: расписание уведомлений уходит в Android', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__sched = [];
+    window.AndroidApp = { setSchedule: j => { window.__sched = JSON.parse(j) }, notificationsAllowed: () => true, askNotifications: () => true, setBars: () => {} };
+  });
+  await setup(page, { day: 20 });
+  const ids = await ev(page, 'window.__sched.map(x=>x.id)');
+  expect(ids).toContain('p2026-11-20');      // таблетка сегодня в 21:00
+  expect(ids).toContain('p22026-11-20');     // повтор через 2 часа
+  expect(ids).toContain('l2026-11-21');      // завтра последняя активная
+  expect(ids).toContain('b2026-11-22');      // за день до месячных (с 23.11)
+  await page.click('.ring-box [data-mark]');
+  expect(await ev(page, 'window.__sched.map(x=>x.id)')).not.toContain('p2026-11-20');
+  await openSettings(page);
+  await page.uncheck('[data-nf=period]');
+  expect(await ev(page, `window.__sched.some(x=>x.id[0]==='b')`)).toBeFalsy();
+});

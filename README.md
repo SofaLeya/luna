@@ -9,3 +9,8 @@ https://sofaleya.github.io/luna/
 `npm install && npm test` - основные сценарии (прогноз, отмена месячных, перенос из "Мой календарь", синхронизация и т.д.).
 На GitHub тесты запускаются при каждом изменении, и сайт обновляется только если все зелёные.
 В `tests/fixtures/sample.pc` - выдуманные данные, не настоящие.
+
+## Android
+
+Папка `android` - маленькое приложение, которое открывает сайт и умеет уведомления и ярлыки.
+apk собирается в GitHub Actions ("Сборка apk") и лежит тут: https://github.com/sofaleya/luna/releases/latest/download/luna.apk

@@ -1,0 +1,65 @@
+name: Сборка apk
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # Android SDK уже стоит на раннере GitHub
+      - name: Принять лицензии Android SDK
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      # Если в секретах есть ключ - подписываем им (тогда новые версии ставятся поверх старой).
+      # Если нет - собираем с временным ключом, apk всё равно ставится.
+      - name: Достать ключ подписи
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+        run: |
+          if [ -n "$SIGNING_KEY" ]; then
+            echo "$SIGNING_KEY" | base64 -d > "$RUNNER_TEMP/release.jks"
+            echo "Ключ подписи найден"
+          else
+            echo "::warning::Нет секрета SIGNING_KEY - apk подписан временным ключом"
+          fi
+
+      - name: Собрать apk
+        working-directory: android
+        env:
+          SIGNING_STORE: ${{ runner.temp }}/release.jks
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+        run: gradle --no-daemon assembleRelease
+
+      - name: Переименовать
+        run: cp android/app/build/outputs/apk/release/app-release.apk luna.apk
+
+      - name: Выложить в Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk
+          name: Луна для Android
+          body: |
+            Скачать на телефон: https://github.com/sofaleya/luna/releases/latest/download/luna.apk
+            Сборка №${{ github.run_number }}
+          make_latest: true
+          files: luna.apk

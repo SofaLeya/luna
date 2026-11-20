@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sc_pill">Выпила 💊</string>
+    <string name="sc_pill_l">Выпила таблетку</string>
+    <string name="sc_start">Начались 🩸</string>
+    <string name="sc_start_l">Начались месячные</string>
+</resources>

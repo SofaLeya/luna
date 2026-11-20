@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="pill" android:enabled="true" android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/sc_pill" android:shortcutLongLabel="@string/sc_pill_l">
+        <intent android:action="android.intent.action.VIEW"
+            android:targetPackage="io.github.sofaleya.luna"
+            android:targetClass="io.github.sofaleya.luna.MainActivity"
+            android:data="https://sofaleya.github.io/luna/?a=pill" />
+    </shortcut>
+    <shortcut android:shortcutId="start" android:enabled="true" android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/sc_start" android:shortcutLongLabel="@string/sc_start_l">
+        <intent android:action="android.intent.action.VIEW"
+            android:targetPackage="io.github.sofaleya.luna"
+            android:targetClass="io.github.sofaleya.luna.MainActivity"
+            android:data="https://sofaleya.github.io/luna/?a=start" />
+    </shortcut>
+</shortcuts>
