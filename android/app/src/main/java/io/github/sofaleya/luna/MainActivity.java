@@ -148,7 +148,10 @@ public class MainActivity extends Activity {
         if (savedInstanceState != null && start == null) {
             web.restoreState(savedInstanceState);
         } else {
-            web.loadUrl(start != null ? start : START_URL);
+            String target = start != null ? start : START_URL;
+            // A versioned navigation bypasses an old cached HTML document and SW shell.
+            String separator = target.contains("?") ? "&" : "?";
+            web.loadUrl(target + separator + "luna_build=" + BuildConfig.VERSION_CODE);
         }
     }
 
