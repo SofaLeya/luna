@@ -1283,25 +1283,48 @@ if(YD.justIn){YD.justIn=false;toast('Яндекс Диск подключён');
 ydSync();setInterval(()=>ydSync(),5*60000);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)hiddenAt=Date.now();else{nativeSchedule();if(pinHash()&&hiddenAt&&Date.now()-hiddenAt>60000)lockNow();ydSync()}});
 lockNow();if(!pinHash())runAct();nativeSchedule();apkCheck();if(APP&&S.setup){try{if(!AndroidApp.notificationsAllowed()&&!S.nfAsked){S.nfAsked=1;saveLocal();AndroidApp.askNotifications()}}catch(e){}}
-if('serviceWorker' in navigator&&location.protocol==='https:'){
+// Same visible update prompt as Schitalochka; no user data is deleted.
+async function lunaCheckUpdates(){
+  if(document.getElementById('luna-update-bar')||!navigator.onLine)return;
   try{
-    navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(reg=>{
-      // Check for a new website build when the APK is opened again.
-      const check=()=>{if(navigator.onLine)reg.update().catch(()=>{})};
-      document.addEventListener('visibilitychange',()=>{if(!document.hidden)check()});
-      window.addEventListener('pageshow',check);
-      check();
-    }).catch(()=>{});
-    navigator.serviceWorker.addEventListener('controllerchange',()=>{
-      // Reload only once per new controller to avoid loops; localStorage is retained.
-      if(!sessionStorage.getItem('luna-sw-refresh')){
-        sessionStorage.setItem('luna-sw-refresh','1');
-        location.reload();
-      }
-    });
-    window.addEventListener('pageshow',()=>sessionStorage.removeItem('luna-sw-refresh'));
+    const res=await fetch('version.txt?t='+Date.now(),{cache:'no-store'});
+    if(!res.ok)return;
+    const remote=(await res.text()).trim();
+    if(!/^[0-9a-f]{7,40}$/.test(remote))return;
+    const current=localStorage.getItem('luna-ui-version');
+    if(current===remote)return;
+    const bar=document.createElement('div');
+    bar.id='luna-update-bar';
+    bar.style.cssText='position:fixed;bottom:76px;left:12px;right:12px;max-width:500px;margin:auto;z-index:9999;background:#38233a;color:#fff;border:1px solid #ff6fa8;border-radius:14px;padding:12px 14px;box-shadow:0 6px 28px #0008;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px';
+    bar.innerHTML='✨ Есть обновление <button type="button" style="background:#ff6fa8;color:#1d121d;border-radius:10px;padding:9px 14px;font-weight:700">Обновить</button>';
+    bar.querySelector('button').onclick=async()=>{
+      bar.querySelector('button').disabled=true;
+      bar.querySelector('button').textContent='Обновляю…';
+      try{
+        if('serviceWorker' in navigator){
+          const reg=await navigator.serviceWorker.getRegistration();
+          if(reg)await reg.update();
+        }
+        if('caches' in window){
+          const keys=await caches.keys();
+          await Promise.all(keys.filter(k=>k.startsWith('luna-')).map(k=>caches.delete(k)));
+        }
+        localStorage.setItem('luna-ui-version',remote);
+        const u=new URL(location.href);
+        u.searchParams.set('luna_refresh',remote.slice(0,12));
+        location.replace(u.href);
+      }catch(e){bar.querySelector('button').disabled=false;bar.querySelector('button').textContent='Повторить'}
+    };
+    document.body.appendChild(bar);
   }catch(e){}
 }
+setTimeout(lunaCheckUpdates,4000);
+setInterval(lunaCheckUpdates,20*60*1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)lunaCheckUpdates()});
+if('serviceWorker' in navigator&&location.protocol==='https:'){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(()=>{}));
+}
+
 </script>
 </body>
 </html>
