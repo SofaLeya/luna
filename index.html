@@ -1027,7 +1027,7 @@ function apkBind(){
 /* ---------- синхронизация через Яндекс Диск ----------
    Данные лежат у самой хозяйки: "Приложения/Луна" на её Диске. Приложение видит только эту папку.
    Один файл luna.json + копии по дням в папке "Копии" (последние 14). */
-const YD={cid:'5655372817044b6db5a37a104bcf1149',redir:'https://sofaleya.github.io/luna/',api:'https://cloud-api.yandex.net/v1/disk/resources',file:'app:/luna.json',dir:'app:/Копии',key:'luna-yd',bkey:'luna-yd-base',busy:false,again:false,t:null,st:'',msg:''};
+const YD={cid:'d7394ecf458b4e3da60b81e8220107bb',redir:'https://sofaleya.github.io/luna/',api:'https://cloud-api.yandex.net/v1/disk/resources',file:'app:/luna.json',dir:'app:/Копии',key:'luna-yd',bkey:'luna-yd-base',busy:false,again:false,t:null,st:'',msg:''};
 function ydGet(){try{return JSON.parse(localStorage.getItem(YD.key)||'{}')||{}}catch(e){return{}}}
 function ydSet(p){const m=ydGet();for(const k in p){if(p[k]===undefined)delete m[k];else m[k]=p[k]}try{localStorage.setItem(YD.key,JSON.stringify(m))}catch(e){}return m}
 function ydOn(){return !!(YD.cid&&ydGet().tok)}
