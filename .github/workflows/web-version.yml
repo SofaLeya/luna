@@ -1,0 +1,29 @@
+name: Обновление веб-версии Луны
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'sw.js'
+      - 'manifest.webmanifest'
+      - 'icon-*.png'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Обновить версию для проверки в приложении
+        run: |
+          printf '%s\n' "${GITHUB_SHA}" > version.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add version.txt
+          if ! git diff --cached --quiet; then
+            git commit -m "Update Luna web version [skip ci]"
+            git push
+          fi
