@@ -44,10 +44,25 @@ header h1 span{color:var(--rose)}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .mut{color:var(--mut)} .dim{color:var(--dim)} .sm{font-size:14px}
 .ring-box{display:flex;flex-direction:column;align-items:center;gap:14px}
-.ring{position:relative;width:240px;height:240px}
+.ring{position:relative;width:200px;height:200px}
+.hero{text-align:center;padding:20px 16px}
+.hero .hk{color:var(--mut);font-size:14px}
+.hero .hb{font-size:34px;font-weight:800;margin:2px 0;background:linear-gradient(135deg,#ff8fbd,#b07be8);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .hs{color:var(--mut);font-size:15px}
+.hbtn{justify-content:center;margin-top:14px}
+.btn.main.sm2{width:auto;font-size:16px;padding:12px 20px}
+.pt{font-weight:600}
+.minis{display:flex;gap:8px;width:100%}
+.minis div{flex:1;background:var(--bg2);border-radius:12px;padding:8px;text-align:center}
+.minis span{display:block;font-size:11px;color:var(--mut)}
+.minis b{font-size:15px}
+.step{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:4px;width:fit-content}
+.step button{width:40px;height:40px;border-radius:11px;background:var(--card2);font-size:22px;color:var(--rose)}
+.step b{font-size:20px;min-width:28px;text-align:center}
+.step span{min-width:40px}
 .ring svg{width:100%;height:100%}
 .ring .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-.ring .big{font-size:48px;font-weight:800;line-height:1}
+.ring .big{font-size:42px;font-weight:800;line-height:1}
 .ring .of{color:var(--mut);font-size:14px;margin-top:4px}
 .ring .ph{margin-top:8px;font-size:14px;padding:4px 10px;border-radius:20px;background:#ffffff10}
 .kv{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
@@ -71,8 +86,9 @@ nav.tabs button.on .e{filter:none}
 .d{position:relative;aspect-ratio:1/1.12;border-radius:12px;background:var(--bg2);border:1px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:5px;font-size:15px}
 .d.out{opacity:.25}
 .d.today{border-color:#fff}
-.d.pred{border:1.5px dashed var(--rose)}
-.d.inact{background:#1a161c}
+.d.pred{border:1.5px dashed var(--rose);background:#3a1a2c}
+.d.inact{background:#211b23}
+.d.pred,.d.inact.pred{border:1.5px dashed var(--rose);background:#3a1a2c}
 .d.f1{background:#3b2030} .d.f2{background:#5a1f3a} .d.f3{background:#7a1f43} .d.f4{background:#9b1840}
 .d .mk{position:absolute;bottom:4px;font-size:10px;line-height:1}
 .d .mk.ok{color:var(--ok)} .d .mk.miss{color:var(--bad)} .d .mk.pl{color:var(--dim)}
@@ -127,8 +143,8 @@ const PRESETS=[
   {id:'cont',name:'Без перерыва',active:28,inactive:0,type:'placebo',hint:'пью активные подряд'}
 ];
 let S=load();
-function def(){return{v:1,setup:false,since:null,mode:'pill',pill:{name:'Ярина Плюс',preset:'21p7',active:21,inactive:7,type:'placebo',time:'21:00',packs:[],stock:null},taken:{},days:{}}}
-function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);return Object.assign(def(),o,{pill:Object.assign(def().pill,o.pill||{})})}}catch(e){}return def()}
+function def(){return{v:1,setup:false,since:null,mode:'pill',pill:{name:'Ярина Плюс',preset:'21p7',active:21,inactive:7,type:'placebo',time:'21:00',packs:[],stock:null},taken:{},days:{},ended:{},cyc:{len:28,auto:true,dur:5,after:2}}}
+function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);return Object.assign(def(),o,{pill:Object.assign(def().pill,o.pill||{}),cyc:Object.assign(def().cyc,o.cyc||{})})}}catch(e){}return def()}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Не получилось сохранить в браузере - сделай копию в настройках')}}
 
 /* ---------- даты ---------- */
@@ -148,6 +164,7 @@ function plural(n,a,b,c){n=Math.abs(n)%100;const m=n%10;if(n>10&&n<20)return c;i
 
 /* ---------- логика пачки ---------- */
 const P=()=>S.pill;
+const C=()=>S.cyc;
 const L=()=>P().active+P().inactive;
 function packInfo(k){
   if(S.mode!=='pill'||!P().packs.length)return null;
@@ -162,11 +179,19 @@ function schedAt(k){const[h,m]=P().time.split(':').map(Number);const d=parse(k);
 function lateH(k){const t=S.taken[k];if(!t)return null;return (new Date(t.at)-schedAt(k))/36e5}
 function predBleed(k){
   if(S.mode==='pill'){
-    const pi=packInfo(k);if(!pi||P().inactive<1)return false;
-    return !pi.active&&pi.inIdx>=2&&pi.inIdx<=Math.min(P().inactive,6);
+    if(P().inactive<1)return false;
+    const pi=packInfo(k);if(!pi)return false;
+    const first=P().packs.slice().sort()[0];
+    for(const st of [pi.start,add(pi.start,-pi.len)]){
+      if(st<first)continue;
+      const d=diff(add(st,P().active-1+C().after),k);
+      if(d>=0&&d<C().dur)return true;
+    }
+    return false;
   }
   const n=natural();if(!n.next)return false;
-  const d=diff(n.next,k);return d>=0&&d<n.len;
+  for(let i=0;i<15;i++){const d=diff(add(n.next,i*n.avg),k);if(d<0)break;if(d<n.len)return true}
+  return false;
 }
 function nextPack(k){const pi=packInfo(k);return pi?add(pi.end,1):null}
 function nextBleedStart(k){
@@ -203,13 +228,39 @@ function natural(){
   const st=eps.map(e=>e.start);
   const cyc=[];for(let i=1;i<st.length;i++){const c=diff(st[i-1],st[i]);if(c>=15&&c<=60)cyc.push(c)}
   const last=cyc.slice(-6);
-  const avg=last.length?Math.round(last.reduce((a,b)=>a+b,0)/last.length):28;
-  const lens=eps.slice(-6).map(e=>e.n);
-  const len=lens.length?Math.round(lens.reduce((a,b)=>a+b,0)/lens.length):5;
+  const hist=last.length?Math.round(last.reduce((a,b)=>a+b,0)/last.length):null;
+  const avg=C().auto&&last.length>=2?hist:C().len;
   const lastStart=st[st.length-1]||null;
-  let next=lastStart?add(lastStart,avg):null;
-  if(next){while(next<add(today(),-len))next=add(next,avg)}
-  return{avg,len,next,lastStart,count:cyc.length};
+  return{avg,len:C().dur,next:lastStart?add(lastStart,avg):null,lastStart,count:cyc.length,hist};
+}
+function curPeriod(t){
+  const eps=episodes();const e=eps[eps.length-1];
+  if(!e||S.ended[e.start])return e&&e.end===t?{e,today:true,day:diff(e.start,t)+1,closed:true}:null;
+  if(e.end===t)return{e,today:true,day:diff(e.start,t)+1};
+  if(e.end===add(t,-1)&&diff(e.start,t)<C().dur+4)return{e,today:false,day:diff(e.start,t)+1};
+  return null;
+}
+function hero(t){
+  const cp=curPeriod(t),D=(n)=>n+' '+plural(n,'день','дня','дней');
+  let h='<div class="card hero"><div class="hk">Месячные</div>';
+  if(cp&&cp.today){
+    const left=C().dur-cp.day;
+    h+=`<div class="hb">${cp.day}-й день</div><div class="hs">${cp.closed?'отмечено, что сегодня последний день':left>0?'по плану ещё ~'+D(left):'по плану уже должны заканчиваться'}</div>`;
+    if(!cp.closed)h+=`<div class="row hbtn"><button class="btn" data-end>Сегодня последний день</button></div>`;
+  }else if(cp){
+    h+=`<div class="hb">${cp.day}-й день?</div><div class="hs">Вчера были. Сегодня ещё идут?</div><div class="row hbtn"><button class="btn main sm2" data-cont>Да, идут</button><button class="btn" data-end>Нет, закончились</button></div>`;
+  }else{
+    const n=S.mode==='natural'?natural():null;
+    const late=n&&n.next&&n.next<t?diff(n.next,t):0;
+    const ns=nextBleedStart(t);
+    if(late>0)h+=`<div class="hb">задержка ${D(late)}</div><div class="hs">ждали ${fmtW(n.next)}</div>`;
+    else if(predBleed(t))h+=`<div class="hb">ждём сейчас</div><div class="hs">по прогнозу должны начаться в эти дни</div>`;
+    else if(ns){const d=diff(t,ns);h+=`<div class="hb">через ${D(d)}</div><div class="hs">~ ${fmtW(ns)}</div>`}
+    else if(S.mode==='pill'&&P().inactive<1)h+=`<div class="hb">не ожидаются</div><div class="hs">пьёшь без перерыва</div>`;
+    else h+=`<div class="hb">пока не знаю</div><div class="hs">нажми "Начались", когда придут</div>`;
+    h+=`<div class="row hbtn"><button class="btn main sm2" data-start>🩸 Начались сегодня</button></div>`;
+  }
+  return h+'</div>';
 }
 
 /* ---------- рендер ---------- */
@@ -249,52 +300,26 @@ function todayView(){
   const t=today();let h='';
   if(S.mode==='pill'){
     const pi=packInfo(t);
-    if(!pi){return h+`<div class="card"><p>Пачка ещё не начата.</p><button class="btn main" id="newpack">Начала пачку сегодня</button></div>`}
-    // предупреждения
+    if(!pi)return hero(t)+`<div class="card"><p>Пачка ещё не начата.</p><button class="btn main" id="newpack">Начала пачку сегодня</button></div>`;
     const miss=missedActive();
-    if(miss.length){
-      h+=`<div class="alert bad"><b>Не отмечена ${miss.length===1?'таблетка':'таблетки'}: ${miss.map(k=>'день '+packInfo(k).day+' ('+fmtShort(k)+')').join(', ')}</b>Если выпила и просто забыла отметить - отметь. Если правда пропустила - глянь, что делать.<div class="row"><button class="btn small" data-mark="${miss[miss.length-1]}">Выпила, отметить</button><button class="btn small" data-help="miss">Что делать при пропуске</button></div></div>`;
-    }
-    const now=new Date(),sch=schedAt(t),hrs=(now-sch)/36e5;
+    if(miss.length)h+=`<div class="alert bad"><b>Не отмечена ${miss.length===1?'таблетка':'таблетки'}: ${miss.map(k=>'день '+packInfo(k).day+' ('+fmtShort(k)+')').join(', ')}</b>Если выпила и просто забыла отметить - отметь. Если правда пропустила - глянь, что делать.<div class="row"><button class="btn small" data-mark="${miss[miss.length-1]}">Выпила, отметить</button><button class="btn small" data-help="miss">Что делать при пропуске</button></div></div>`;
+    const hrs=(new Date()-schedAt(t))/36e5;
     if(pi.active&&!S.taken[t]){
       if(hrs>=12)h+=`<div class="alert bad"><b>Опоздание больше 12 часов</b>Выпей сейчас и глянь правила пропуска.<div class="row"><button class="btn small" data-help="miss">Что делать</button></div></div>`;
       else if(hrs>=0)h+=`<div class="alert warn"><b>Пора выпить таблетку 💊</b>Время приёма было в ${P().time}. До 12 часов опоздания - не страшно.</div>`;
     }
     if(P().stock!==null&&P().stock<=0&&diff(t,pi.end)<=7)h+=`<div class="alert info"><b>Запас пачек закончился</b>Новая пачка нужна ${fmt(add(pi.end,1))}. Пора докупить ${esc(P().name)}.</div>`;
-    // кольцо
-    const tk=S.taken[t];let phase,btn;
-    if(pi.active){phase='активная таблетка'}
-    else if(P().type==='placebo'){phase='плацебо (пустышка)'}
-    else{phase='перерыв'}
-    if(!pi.active&&P().type==='break'){btn=`<div class="mut sm" style="text-align:center">Сегодня таблетку не пьём. Новая пачка - ${fmtW(add(pi.end,1))}</div>`}
-    else if(tk){const lh=lateH(t);btn=`<button class="btn done" data-unmark="${t}">✓ Выпила в ${new Date(tk.at).toTimeString().slice(0,5)}${lh>=12?' (опоздание)':''}</button><div class="dim sm">нажми, чтобы отменить</div>`}
-    else btn=`<button class="btn main" data-mark="${t}">Выпила 💊</button>${!pi.active?'<div class="dim sm">пустышку тоже лучше пить - так не собьёшься</div>':''}`;
-    h+=`<div class="card ring-box"><div class="ring">${ringSVG(pi)}<div class="c"><div class="big">${pi.day}</div><div class="of">из ${pi.len}</div><div class="ph">${phase}</div></div></div>${btn}</div>`;
-    // инфо
-    const nb=nextBleedStart(t),np=add(pi.end,1);
-    h+=`<div class="card">`;
-    const bleedNow=predBleed(t);
-    h+=`<div class="kv"><span class="k">Кровотечение отмены</span><span class="v">${P().inactive<1?'не ожидается (без перерыва)':bleedNow?'ожидается сейчас':nb?'~ с '+fmt(nb):'-'}</span></div>`;
-    if(P().inactive>0&&pi.active)h+=`<div class="kv"><span class="k">Последняя активная</span><span class="v">${fmtW(add(pi.start,P().active-1))}</span></div>`;
-    h+=`<div class="kv"><span class="k">Новая пачка</span><span class="v">${fmtW(np)}</span></div>`;
-    if(P().stock!==null)h+=`<div class="kv"><span class="k">В запасе</span><span class="v">${P().stock} ${plural(P().stock,'пачка','пачки','пачек')}</span></div>`;
-    h+=`<div class="kv"><span class="k">${esc(P().name)}</span><span class="v">в ${P().time}</span></div>`;
-    h+=`</div>`;
-  }else{
-    const n=natural();
-    h+=`<div class="card ring-box" style="text-align:center">`;
-    if(!n.lastStart)h+=`<p class="mut">Отметь первый день месячных в календаре или ниже - и я начну считать.</p>`;
-    else{
-      const dIn=diff(n.lastStart,t)+1;const toNext=n.next?diff(t,n.next):null;
-      h+=`<div class="mut sm">день цикла</div><div style="font-size:56px;font-weight:800;line-height:1.1">${dIn}</div>`;
-      h+=`<div>${toNext>0?'месячные примерно через '+toNext+' '+plural(toNext,'день','дня','дней')+' - '+fmt(n.next):toNext!==null&&toNext>-n.len?'месячные ожидаются сейчас':'-'}</div>`;
-      h+=`<div class="dim sm">средний цикл ${n.avg} ${plural(n.avg,'день','дня','дней')}${n.count<2?' (пока мало данных, беру 28)':''}</div>`;
-    }
-    h+=`</div>`;
-  }
-  // быстрый ввод
+    h+=hero(t);
+    const tk=S.taken[t];let btn;
+    const phase=pi.active?'активная':P().type==='placebo'?'плацебо (пустышка)':'перерыв';
+    if(!pi.active&&P().type==='break')btn=`<div class="mut sm" style="text-align:center">Сегодня таблетку не пьём. Новая пачка - ${fmtW(add(pi.end,1))}</div>`;
+    else if(tk){const lh=lateH(t);btn=`<button class="btn done" data-unmark="${t}">✓ Выпила в ${new Date(tk.at).toTimeString().slice(0,5)}${lh>=12?' (опоздание)':''}</button>`}
+    else btn=`<button class="btn main" data-mark="${t}">Выпила 💊</button>`;
+    h+=`<div class="card ring-box"><div class="pt">💊 ${esc(P().name)} <span class="mut">в ${P().time}</span></div><div class="ring">${ringSVG(pi)}<div class="c"><div class="big">${pi.day}</div><div class="of">таблетка из ${pi.len}</div><div class="ph">${phase}</div></div></div>${btn}
+    <div class="minis"><div><span>последняя активная</span><b>${fmtShort(add(pi.start,P().active-1))}</b></div><div><span>новая пачка</span><b>${fmtShort(add(pi.end,1))}</b></div>${P().stock!==null?`<div><span>в запасе</span><b>${P().stock}</b></div>`:''}</div></div>`;
+  }else h+=hero(t);
   const dd=S.days[t]||{};
-  h+=`<div class="card"><h3>Сегодня</h3><div class="chips">${FLOW.map((f,i)=>`<button class="chip flow-${i} ${(dd.flow||0)===i?'on':''}" data-flow="${i}">${i?'🩸 ':''}${f}</button>`).join('')}</div>
+  h+=`<div class="card"><h3>Как сегодня</h3><div class="chips">${FLOW.map((f,i)=>`<button class="chip flow-${i} ${(dd.flow||0)===i?'on':''}" data-flow="${i}">${i?'🩸 ':''}${f}</button>`).join('')}</div>
   <div class="row" style="margin-top:10px"><button class="btn small" data-day="${t}">Самочувствие и заметка${(dd.sym&&dd.sym.length)||dd.note?' ✎':''}</button></div></div>`;
   return h;
 }
@@ -316,7 +341,7 @@ function calView(){
       if(pi){if(!pi.active){cls+=dd.flow?'':' inact';mk=P().type==='placebo'?(S.taken[k]?'<span class="mk pl">●</span>':'<span class="mk pl">○</span>'):''}
         else if(S.taken[k])mk=lateH(k)>=12?'<span class="mk miss">!</span>':'<span class="mk ok">●</span>';
         else if(k<t&&!(S.since&&k<S.since))mk='<span class="mk miss">✕</span>';
-        else mk='<span class="mk dim">·</span>';
+        else mk='';
         if(pi.day===1)mk+='';
       }
     }
@@ -325,7 +350,7 @@ function calView(){
   }
   h+=`</div><div class="legend">`;
   if(S.mode==='pill')h+=`<span><b style="color:var(--ok)">●</b> выпила</span><span><b style="color:var(--bad)">✕</b> пропуск</span><span><b style="color:var(--bad)">!</b> опоздание 12ч+</span><span><i style="background:#1a161c;border:1px solid var(--line)"></i>${P().type==='placebo'?'плацебо':'перерыв'}</span>`;
-  h+=`<span><i style="background:#7a1f43"></i>кровотечение</span><span><i style="border:1.5px dashed var(--rose)"></i>прогноз</span><span><i style="background:var(--warn);width:6px;height:6px;border-radius:50%"></i> заметка</span></div></div>`;
+  h+=`<span><i style="background:#7a1f43"></i>месячные</span><span><i style="background:#3a1a2c;border:1.5px dashed var(--rose)"></i>прогноз месячных</span><span><i style="background:var(--warn);width:6px;height:6px;border-radius:50%"></i> заметка</span></div></div>`;
   h+=`<div class="dim sm" style="text-align:center">Нажми на день, чтобы отметить</div>`;
   return h;
 }
@@ -368,6 +393,9 @@ function bindView(){
   document.querySelectorAll('[data-help]').forEach(b=>b.onclick=()=>openHelp(b.dataset.help));
   document.querySelectorAll('[data-flow]').forEach(b=>b.onclick=()=>{const t=today();S.days[t]=S.days[t]||{};S.days[t].flow=+b.dataset.flow;clean(t);save();render()});
   document.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>openDay(b.dataset.day));
+  document.querySelectorAll('[data-start]').forEach(b=>b.onclick=()=>{const t=today();S.days[t]=S.days[t]||{};S.days[t].flow=Math.max(S.days[t].flow||0,3);save();render();toast('Отмечено: месячные начались')});
+  document.querySelectorAll('[data-cont]').forEach(b=>b.onclick=()=>{const t=today(),y=S.days[add(t,-1)];S.days[t]=S.days[t]||{};S.days[t].flow=y&&y.flow?y.flow:2;save();render()});
+  document.querySelectorAll('[data-end]').forEach(b=>b.onclick=()=>{const cp=curPeriod(today());if(cp){S.ended[cp.e.start]=true;save();render();toast('Отмечено, что закончились',()=>{delete S.ended[cp.e.start];save();render()})}});
   const np=$('#newpack');if(np)np.onclick=()=>{startPack(today())};
   const pm=$('#pm'),nm=$('#nm');
   if(pm){pm.onclick=()=>{calM=shiftM(calM,-1);render()};nm.onclick=()=>{calM=shiftM(calM,1);render()}}
@@ -440,7 +468,7 @@ function openHelp(which){
   <p class="dim">Это не замена врачу. Если сомневаешься - звони/пиши гинекологу.</p></div>`;
   const gen=`<h2>Как пользоваться</h2><div class="help">
   <p>💊 <b>Каждый вечер</b> жми "Выпила" на главной. Кольцо показывает всю пачку: розовым - выпитые, красным - пропуски, серым - ${P().type==='break'?'перерыв':'плацебо'}.</p>
-  <p>🩸 <b>Кровотечение</b> отмечай на главной (сегодня) или в календаре (любой день). Приложение само поймёт, где кровотечение отмены, а где прорывное.</p>
+  <p>🩸 <b>Месячные</b>: жми "Начались сегодня", потом каждый день приложение спросит, идут ли ещё. Прошлые дни можно отметить в календаре. Длину цикла и месячных меняй в настройках ⚙︎.</p>
   <p>📦 <b>Новая пачка</b> начинается сама после последней таблетки. Если начала раньше или позже - открой этот день в календаре и нажми "С этого дня начала новую пачку".</p>
   <p>⏰ <b>Напоминание.</b> Браузерные приложения не умеют надёжно будить телефон, поэтому поставь обычный будильник на ${P().time} с подписью "таблетка". Если откроешь приложение после этого времени и не отметишь - оно напомнит.</p>
   <p>🔒 <b>Данные</b> хранятся только на этом телефоне, никуда не отправляются. Делай иногда копию в настройках.</p>
@@ -449,11 +477,25 @@ function openHelp(which){
   sheet(which==='miss'?miss:gen,(sh,close)=>{const b=sh.querySelector('#tomiss');if(b)b.onclick=()=>{close();openHelp('miss')}});
 }
 
+function stepper(id,v,min,max,unit){return `<div class="step" data-id="${id}" data-min="${min}" data-max="${max}"><button type="button" data-d="-1">−</button><b>${v}</b><span class="mut">${unit}</span><button type="button" data-d="1">+</button></div>`}
+function bindSteppers(root,obj,units){root.querySelectorAll('.step').forEach(st=>st.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const id=st.dataset.id;obj[id]=Math.min(+st.dataset.max,Math.max(+st.dataset.min,obj[id]+ +b.dataset.d));st.querySelector('b').textContent=obj[id];if(units[id])st.querySelector('span').textContent=units[id](obj[id])}))}
+const U={len:n=>plural(n,'день','дня','дней'),dur:n=>plural(n,'день','дня','дней'),after:n=>plural(n,'день','дня','дней')};
+function cycBlock(mode,c){
+  let h=`<h4>Цикл и месячные</h4>`;
+  h+=`<div class="${mode==='natural'?'':'hide'}" data-for="natural"><label class="f">Длина цикла (от начала одних месячных до начала следующих)</label>${stepper('len',c.len,18,45,U.len(c.len))}
+  <label class="row" style="margin-top:10px;gap:10px;font-size:14px"><input type="checkbox" id="cauto" ${c.auto?'checked':''} style="width:20px;height:20px"> Подстраивать по моей истории, когда наберётся 2+ цикла${natural().hist?' (сейчас в среднем '+natural().hist+')':''}</label></div>`;
+  h+=`<div class="${mode==='pill'?'':'hide'} dim sm" data-for="pill" style="margin-top:6px">На КОК цикл = одна пачка (${L()} дней), поэтому длину цикла задаёт схема ниже.</div>`;
+  h+=`<label class="f">Месячные длятся</label>${stepper('dur',c.dur,1,10,U.dur(c.dur))}`;
+  h+=`<div class="${mode==='pill'?'':'hide'}" data-for="pill"><label class="f">Начинаются через ... после последней активной таблетки</label>${stepper('after',c.after,1,6,U.after(c.after))}</div>`;
+  return h;
+}
 function openSettings(){
-  const p=P();const pi=packInfo(today());
+  const p=P();const pi=packInfo(today());const c=Object.assign({},C());
   const html=`<h2>Настройки</h2>
   <div class="seg" id="mode"><button data-m="pill" class="${S.mode==='pill'?'on':''}">Пью КОК</button><button data-m="natural" class="${S.mode==='natural'?'on':''}">Без таблеток</button></div>
+  ${cycBlock(S.mode,c)}
   <div id="pillset" class="${S.mode==='pill'?'':'hide'}">
+    <h4>Таблетки</h4>
     <label class="f">Название</label><input id="pn" value="${esc(p.name)}">
     <label class="f">Схема</label><select id="ps">${PRESETS.map(x=>`<option value="${x.id}" ${p.preset===x.id?'selected':''}>${x.name} - ${x.hint}</option>`).join('')}<option value="custom" ${p.preset==='custom'?'selected':''}>Своя</option></select>
     <div id="cust" class="row ${p.preset==='custom'?'':'hide'}" style="margin-top:8px"><input id="ca" type="number" min="1" max="120" value="${p.active}" style="width:90px"> <span class="mut">активных +</span> <input id="ci" type="number" min="0" max="14" value="${p.inactive}" style="width:80px"> <select id="ct" style="width:auto"><option value="placebo" ${p.type==='placebo'?'selected':''}>плацебо</option><option value="break" ${p.type==='break'?'selected':''}>перерыв</option></select></div>
@@ -469,7 +511,8 @@ function openSettings(){
   <button class="btn main" id="ok" style="margin-top:18px">Сохранить</button>`;
   sheet(html,(sh,close)=>{
     let mode=S.mode;
-    sh.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m;sh.querySelectorAll('[data-m]').forEach(x=>x.classList.toggle('on',x===b));sh.querySelector('#pillset').classList.toggle('hide',mode!=='pill')});
+    bindSteppers(sh,c,U);
+    sh.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m;sh.querySelectorAll('[data-m]').forEach(x=>x.classList.toggle('on',x===b));sh.querySelector('#pillset').classList.toggle('hide',mode!=='pill');sh.querySelectorAll('[data-for]').forEach(x=>x.classList.toggle('hide',x.dataset.for!==mode))});
     sh.querySelector('#ps').onchange=e=>sh.querySelector('#cust').classList.toggle('hide',e.target.value!=='custom');
     sh.querySelector('#ex').onclick=exportData;
     sh.querySelector('#exc').onclick=()=>{const t=JSON.stringify(S);try{navigator.clipboard.writeText(t).then(()=>toast('Копия в буфере - вставь её себе в Избранное в телеграме'),()=>toast('Не получилось скопировать'))}catch(e){toast('Не получилось скопировать')}};
@@ -478,7 +521,7 @@ function openSettings(){
     sh.querySelector('#imtb').onclick=()=>loadText(sh.querySelector('#imt').value,close);
     let rsArm=false;sh.querySelector('#rs').onclick=e=>{if(!rsArm){rsArm=true;e.target.textContent='Точно стереть всё? Нажми ещё раз';setTimeout(()=>{rsArm=false;e.target.textContent='Стереть всё'},4000);return}S=def();save();close()};
     sh.querySelector('#ok').onclick=()=>{
-      S.mode=mode;
+      S.mode=mode;c.auto=sh.querySelector('#cauto').checked;S.cyc=c;
       if(mode==='pill'){
         p.name=sh.querySelector('#pn').value.trim()||'КОК';
         const pr=sh.querySelector('#ps').value;p.preset=pr;
@@ -509,18 +552,18 @@ function setupView(){
   </div>
   <div id="sn" class="hide">
     <label class="f">Когда начались последние месячные?</label><input id="ls" type="date" value="${today()}">
-    <label class="f">Сколько дней длились?</label><input id="ll" type="number" min="1" max="12" value="5">
   </div>
+  ${cycBlock('pill',S.cyc)}
   <button class="btn main" id="go" style="margin-top:18px">Начать</button></div>`;
 }
 function bindSetup(){
-  let mode='pill';
-  document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m;document.querySelectorAll('[data-m]').forEach(x=>x.classList.toggle('on',x===b));$('#sp').classList.toggle('hide',mode!=='pill');$('#sn').classList.toggle('hide',mode==='pill')});
+  let mode='pill';const c=S.cyc;bindSteppers($('#app'),c,U);
+  document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m;document.querySelectorAll('[data-m]').forEach(x=>x.classList.toggle('on',x===b));$('#sp').classList.toggle('hide',mode!=='pill');$('#sn').classList.toggle('hide',mode==='pill');document.querySelectorAll('[data-for]').forEach(x=>x.classList.toggle('hide',x.dataset.for!==mode))});
   $('#go').onclick=()=>{
-    S.mode=mode;
+    S.mode=mode;c.auto=$('#cauto').checked;
     if(mode==='pill'){const p=P();p.name=$('#pn').value.trim()||'КОК';const x=PRESETS.find(z=>z.id===$('#ps').value);Object.assign(p,{preset:x.id,active:x.active,inactive:x.inactive,type:x.type});p.time=$('#pt').value||'21:00';
       const day=Math.min(L(),Math.max(1,+$('#pd').value||1));p.packs=[add(today(),-(day-1))];if($('#prev').checked)for(let i=1;i<day;i++){const k=add(today(),-i);if(packInfo(k).active||P().type==='placebo')S.taken[k]={at:schedAt(k).toISOString()}}}
-    else{const ls=$('#ls').value,ll=+$('#ll').value||5;if(ls)for(let i=0;i<ll;i++){const k=add(ls,i);if(k<=today())S.days[k]={flow:i<2?3:2,sym:[],note:''}}}
+    else{const ls=$('#ls').value,ll=c.dur;if(ls)for(let i=0;i<ll;i++){const k=add(ls,i);if(k<=today())S.days[k]={flow:i<2?3:2,sym:[],note:''}}}
     S.setup=true;S.since=today();save();render();
   };
 }
@@ -528,7 +571,7 @@ function bindSetup(){
 /* ---------- копии и сводка ---------- */
 function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
 function exportData(){download('luna-'+today()+'.json',JSON.stringify(S,null,1),'application/json');toast('Копия скачана')}
-function loadText(txt,close){try{const o=JSON.parse(txt);if(!o||!o.pill||!o.days)throw 0;S=Object.assign(def(),o,{pill:Object.assign(def().pill,o.pill)});save();close();toast('Копия загружена')}catch(e){toast('Это не похоже на копию Луны')}}
+function loadText(txt,close){try{const o=JSON.parse(txt);if(!o||!o.pill||!o.days)throw 0;S=Object.assign(def(),o,{pill:Object.assign(def().pill,o.pill),cyc:Object.assign(def().cyc,o.cyc||{})});save();close();toast('Копия загружена')}catch(e){toast('Это не похоже на копию Луны')}}
 function importData(f,close){if(!f)return;const r=new FileReader();r.onload=()=>loadText(r.result,close);r.readAsText(f)}
 function doctorSummary(){
   const from=add(today(),-183);const eps=episodes().filter(e=>e.end>=from);
