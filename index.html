@@ -128,6 +128,11 @@ label.f{display:block;margin:12px 0 5px;font-size:14px;color:var(--mut)}
 .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#2b1b2b;border:1px solid var(--line);padding:10px 16px;border-radius:14px;z-index:30;font-size:14px;display:flex;gap:12px;align-items:center;box-shadow:0 8px 30px #0008}
 .toast button{color:var(--rose);font-weight:700}
 .hide{display:none!important}
+.hm{display:grid;grid-template-columns:auto 1fr;gap:4px 8px;align-items:center}
+.hml{font-size:12px;color:var(--mut);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hmr{display:grid;grid-template-columns:repeat(35,1fr);gap:1px}
+.hmr i{display:block;height:14px;border-radius:2px}
+.hmx{display:flex;justify-content:space-between;font-size:10px;color:var(--dim)}
 .d.sel{outline:2px solid #fff;outline-offset:1px}
 .d.plan{box-shadow:inset 0 -3px 0 #a77bff}
 .on-btn{border-color:var(--rose)!important;color:var(--rose)}
@@ -167,7 +172,7 @@ const PRESETS=[
   {id:'cont',name:'Без перерыва',active:28,inactive:0,type:'placebo',hint:'пью активные подряд'}
 ];
 let S=load();
-function def(){return{v:1,setup:false,since:null,mode:'pill',pill:{name:'Ярина Плюс',preset:'21p7',active:21,inactive:7,type:'placebo',time:'21:00',packs:[],stock:null,skip:{}},taken:{},days:{},ended:{},plans:[],brk:{},compact:false,cyc:{len:28,auto:true,dur:5,after:2}}}
+function def(){return{v:1,setup:false,since:null,mode:'pill',pill:{name:'Ярина Плюс',preset:'21p7',active:21,inactive:7,type:'placebo',time:'21:00',packs:[],stock:null,skip:{}},taken:{},days:{},ended:{},plans:[],brk:{},compact:false,visits:[],dism:{},cyc:{len:28,auto:true,dur:5,after:2}}}
 function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);return Object.assign(def(),o,{pill:Object.assign(def().pill,o.pill||{}),cyc:Object.assign(def().cyc,o.cyc||{})})}}catch(e){}return def()}
 function fixS(o){return Object.assign(def(),o,{pill:Object.assign(def().pill,o.pill||{}),cyc:Object.assign(def().cyc,o.cyc||{})})}
 function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Не получилось сохранить в браузере - сделай копию в настройках')}}
@@ -250,7 +255,7 @@ function episodes(){
   eps.forEach(e=>{
     if(S.mode==='pill'){const pi=packInfo(e.start);
       if(!pi)e.kind='';
-      else if(!pi.active||pi.day<=3)e.kind='отмены';
+      else if(!pi.active||pi.day<=5)e.kind='отмены';
       else e.kind='прорывное';
     }
   });
@@ -340,10 +345,13 @@ function todayView(){
     const pi=packInfo(t);
     if(!pi)return hero(t)+`<div class="card"><p>Пачка ещё не начата.</p><button class="btn main" id="newpack">Начала пачку сегодня</button></div>`;
     const miss=missedActive();
-    if(miss.length)h+=`<div class="alert bad"><b>Не отмечена ${miss.length===1?'таблетка':'таблетки'}: ${miss.map(k=>'день '+packInfo(k).day+' ('+fmtShort(k)+')').join(', ')}</b>Если выпила и просто забыла отметить - отметь. Если правда пропустила - глянь, что делать.<div class="row"><button class="btn small" data-mark="${miss[miss.length-1]}">Выпила, отметить</button><button class="btn small" data-help="miss">Что делать при пропуске</button></div></div>`;
+    const riskLine=(k)=>{const q=packInfo(k);if(!q||!q.active)return '';const sx=[];for(let i=1;i<=7;i++){const x=add(k,-i);if((S.days[x]||{}).sx)sx.push(x)}
+      if(q.day<=7&&sx.length)return `<div style="margin-top:6px;font-weight:600">⚠️ Пропуск на 1-й неделе пачки, а за 7 дней до него была близость без защиты (${sx.map(fmtShort).join(', ')}). По правилам КОК есть риск - лучше написать гинекологу.</div>`;
+      return `<div style="margin-top:6px">Следующие 7 дней нужна доп. защита (презерватив).</div>`};
+    if(miss.length)h+=`<div class="alert bad"><b>Не ${miss.length===1?'отмечена таблетка':'отмечены таблетки'}: ${miss.map(k=>'день '+packInfo(k).day+' ('+fmtShort(k)+')').join(', ')}</b>Если выпила и просто забыла отметить - отметь. Если правда пропустила - глянь, что делать.${riskLine(miss[0])}<div class="row"><button class="btn small" data-mark="${miss[miss.length-1]}">Выпила, отметить</button><button class="btn small" data-help="miss">Что делать при пропуске</button></div></div>`;
     const hrs=(new Date()-schedAt(t))/36e5;
     if(pi.active&&!S.taken[t]){
-      if(hrs>=12)h+=`<div class="alert bad"><b>Опоздание больше 12 часов</b>Выпей сейчас и глянь правила пропуска.<div class="row"><button class="btn small" data-help="miss">Что делать</button></div></div>`;
+      if(hrs>=12)h+=`<div class="alert bad"><b>Опоздание больше 12 часов</b>Выпей сейчас и глянь правила пропуска.${riskLine(t)}<div class="row"><button class="btn small" data-help="miss">Что делать</button></div></div>`;
       else if(hrs>=0)h+=`<div class="alert warn"><b>Пора выпить таблетку 💊</b>Время приёма было в ${P().time}. До 12 часов опоздания - не страшно.</div>`;
     }
     if(P().stock!==null&&P().stock<=0&&diff(t,pi.end)<=7)h+=`<div class="alert info"><b>Запас пачек закончился</b>Новая пачка нужна ${fmt(add(pi.end,1))}. Пора докупить ${esc(P().name)}.</div>`;
@@ -351,7 +359,7 @@ function todayView(){
       const nxt=P().type==='placebo'?'плацебо':'перерыв';
       h+=`<div class="alert info"><b>${pi.day===P().active?'Сегодня':'Завтра'} последняя активная таблетка</b>Потом ${nxt} и месячные. Делаем перерыв или отменяем месячные?<div class="row"><button class="btn small" data-brk="${pi.start}">Делаю перерыв</button><button class="btn small" data-skip="${pi.start}">🚫 Отменить месячные</button></div></div>`;
     }
-    h+=hero(t);
+    h+=softAlerts(t)+hero(t);
     const tk=S.taken[t];let btn;
     const phase=pi.active?'активная':P().type==='placebo'?'плацебо (пустышка)':'перерыв';
     if(!pi.active&&P().type==='break')btn=`<div class="mut sm" style="text-align:center">Сегодня таблетку не пьём. Новая пачка - ${fmtW(add(pi.end,1))}</div>`;
@@ -363,7 +371,7 @@ function todayView(){
     }else
     h+=`<div class="card ring-box"><div class="pt">💊 ${esc(P().name)} <span class="mut">в ${P().time}</span> <button class="linkbtn" style="display:inline;margin:0 0 0 6px" data-compact>свернуть</button></div><div class="ring">${ringSVG(pi)}<div class="c"><div class="big">${pi.day}</div><div class="of">таблетка из ${pi.len}</div><div class="ph">${phase}</div></div></div>${btn}
     ${skipBtn(pi,t)}<div class="minis"><div><span>последняя активная</span><b>${fmtShort(add(pi.start,P().active-1))}</b></div><div><span>новая пачка</span><b>${fmtShort(add(pi.end,1))}</b></div>${P().stock!==null?`<div><span>в запасе</span><b>${P().stock}</b></div>`:''}</div></div>`;
-  }else h+=hero(t);
+  }else h+=softAlerts(t)+hero(t);
   const dd=S.days[t]||{};
   h+=`<div class="card"><h3>Как сегодня</h3><div class="chips">${FLOW.map((f,i)=>`<button class="chip flow-${i} ${(dd.flow||0)===i?'on':''}" data-flow="${i}">${i?'🩸 ':''}${f}</button>`).join('')}</div>
   <div class="row" style="margin-top:10px"><button class="btn small" data-day="${t}">Самочувствие и заметка${(dd.sym&&dd.sym.length)||dd.note?' ✎':''}</button></div></div>`;
@@ -428,6 +436,7 @@ function statsView(){
       <div><b>${late}</b><span>опозданий больше 12 ч</span></div>
       <div><b>${br.length}</b><span>прорывных кровотечений за 4 мес</span></div></div></div>`;
   }
+  h+=symMap()+medsCard()+visitsCard();
   // вес
   const ws=Object.entries(S.days).filter(([k,d])=>d.w>0).sort();
   if(ws.length){const [lk,ld]=ws[ws.length-1];const prev=ws.length>1?ws[ws.length-2][1].w:null;
@@ -438,7 +447,7 @@ function statsView(){
   if(!rows.length)h+=`<p class="mut sm">Пока ничего не отмечено.</p>`;
   let lastY=null;
   rows.slice(0,showAll?999:12).forEach(r=>{const y=parse(r.e.start).getFullYear();if(y!==lastY&&y!==parse(today()).getFullYear()){h+=`<div class="yr">${y}</div>`}lastY=y;
-    h+=`<div class="ep"><span><b>${fmt(r.e.start)}</b>${r.e.kind==='прорывное'?'<span class="tag br">прорывное</span>':''}<span class="dim sm"> · ${r.e.n} ${plural(r.e.n,'день','дня','дней')}</span></span><span class="mut">${r.cyc?'цикл '+r.cyc:'сейчас'}</span></div>`});
+    h+=`<div class="ep"><span><b>${fmt(r.e.start)}</b>${r.e.kind==='прорывное'?'<span class="tag br">прорывное</span>':''}<span class="dim sm"> · ${r.e.n} ${plural(r.e.n,'день','дня','дней')}${padsOf(r.e)?' · '+padsOf(r.e)+' шт.':''}</span></span><span class="mut">${r.cyc?'цикл '+r.cyc:'сейчас'}</span></div>`});
   if(rows.length>12&&!showAll)h+=`<button class="btn small full" id="more" style="margin-top:8px">Показать всё (${rows.length})</button>`;
   h+=`</div>`;
   // заметки
@@ -451,6 +460,60 @@ function statsView(){
   return h;
 }
 let showAll=false;
+function softAlerts(t){
+  let h='';const D=S.dism||{};
+  // за 1-2 дня до месячных
+  if(!curPeriod(t)){const ns=nextBleedStart(t);if(ns){const d=diff(t,ns);if(d>=1&&d<=2&&!D['pre'+ns])h+=`<div class="alert info"><b>${d===1?'Завтра':'Через 2 дня'} месячные 🩸</b>Проверь запас прокладок и обезболивающего.<div class="row"><button class="btn small" data-dism="pre${ns}">Ок</button></div></div>`}}
+  // прорывные повторяются
+  if(S.mode==='pill'){const from=add(t,-L()*3);const packs=new Set(episodes().filter(e=>e.kind==='прорывное'&&e.start>=from).map(e=>(packInfo(e.start)||{}).start));
+    const kk='br'+t.slice(0,7);if(packs.size>=2&&!D[kk])h+=`<div class="alert warn"><b>Мажущие посреди пачки повторяются</b>Прорывные кровотечения были в ${packs.size} из 3 последних пачек. Это частая история на КОК, но стоит показать гинекологу - кнопка "Отправить врачу" в "Анализе".<div class="row"><button class="btn small" data-dism="${kk}">Понятно</button></div></div>`}
+  // год без гинеколога
+  const gv=(S.visits||[]).filter(v=>v.type==='Гинеколог').map(v=>v.date).sort().pop();
+  const vk='vis'+t.slice(0,7);if(gv&&diff(gv,t)>=365&&!D[vk])h+=`<div class="alert info"><b>Год с последнего визита к гинекологу</b>Последний раз - ${fmt(gv)} ${parse(gv).getFullYear()}. Пора записаться 🩺 (по ДМС, если есть).<div class="row"><button class="btn small" data-dism="${vk}">Напомнить в следующем месяце</button></div></div>`;
+  return h;
+}
+function symMap(){
+  const st=starts();if(st.length<2)return '';
+  const rows={},N=35;
+  for(const [k,d] of Object.entries(S.days)){const cd=cycleDay(k,st);if(!cd||cd>N)continue;
+    const items=[...(d.sym||[]),...((d.meds||[]).length?['💊 обезболивающее']:[]),...(d.mood&&/грус|зло|трев/.test(d.mood)?[d.mood]:[])];
+    items.forEach(x=>{rows[x]=rows[x]||new Array(N).fill(0);rows[x][cd-1]++})}
+  const list=Object.entries(rows).filter(([,a])=>a.reduce((x,y)=>x+y,0)>=2).sort((a,b)=>b[1].reduce((x,y)=>x+y,0)-a[1].reduce((x,y)=>x+y,0)).slice(0,8);
+  if(!list.length)return `<div class="card"><h3>🗺️ Карта самочувствия по дням цикла</h3><div class="dim sm">Появится, когда симптомы будут отмечены хотя бы пару раз.</div></div>`;
+  const mx=Math.max(...list.flatMap(([,a])=>a));
+  let h=`<div class="card"><h3>🗺️ Карта самочувствия по дням цикла</h3><div class="hm">`;
+  list.forEach(([n,a])=>{h+=`<div class="hml">${esc(n)}</div><div class="hmr">${a.map((v,i)=>`<i style="opacity:${v?0.25+0.75*v/mx:1};background:${v?'var(--rose)':'#ffffff0d'}" title="день ${i+1}: ${v}"></i>`).join('')}</div>`});
+  h+=`<div></div><div class="hmx"><span>1</span><span>7</span><span>14</span><span>21</span><span>28</span><span>35</span></div></div><div class="dim sm" style="margin-top:6px">Чем ярче клетка, тем чаще это было в этот день цикла. День 1 - первый день месячных.</div></div>`;
+  return h;
+}
+function medsCard(){
+  const from=add(today(),-92),list=[];
+  for(const [k,d] of Object.entries(S.days))if(k>=from)(d.meds||[]).forEach(m=>list.push({k,...m}));
+  const pads=episodes().filter(e=>e.start>=add(today(),-200)).map(e=>{let tot=0,mx=0;for(let x=e.start;x<=e.end;x=add(x,1)){const p=(S.days[x]||{}).pads||0;tot+=p;mx=Math.max(mx,p)}return{e,tot,mx}}).filter(x=>x.tot);
+  if(!list.length&&!pads.length)return '';
+  let h=`<div class="card"><h3>💊 Обезболивающее и средства</h3>`;
+  if(list.length){const c={};list.forEach(m=>c[m.n]=(c[m.n]||0)+1);h+=`<div class="kv"><span class="k">обезболивающее за 3 мес</span><span class="v">${list.length} ${plural(list.length,'раз','раза','раз')}</span></div>`+Object.entries(c).map(([n,v])=>`<div class="kv"><span class="k">· ${esc(n)}</span><span class="v">${v}</span></div>`).join('')}
+  if(pads.length)h+=pads.slice(-4).reverse().map(x=>`<div class="kv"><span class="k">месячные с ${fmtShort(x.e.start)}</span><span class="v">${x.tot} шт., до ${x.mx} в день</span></div>`).join('');
+  return h+`</div>`;
+}
+const VTYPES=['Гинеколог','УЗИ','Анализы','Маммолог','Другое'];
+function visitsCard(){
+  const vs=(S.visits||[]).map((v,i)=>({v,i})).sort((a,b)=>a.v.date<b.v.date?1:-1);
+  let h=`<div class="card"><h3>🩺 Врачи и анализы</h3>`;
+  if(!vs.length)h+=`<div class="dim sm">Добавь последний визит к гинекологу - через год Луна напомнит записаться.</div>`;
+  h+=vs.slice(0,showAll?99:6).map(({v,i})=>`<div class="ep"><span><b>${fmtShort(v.date)}.${String(parse(v.date).getFullYear()).slice(2)}</b> ${esc(v.type)}${v.note?`<div class="mut sm">${esc(v.note)}</div>`:''}</span><button class="linkbtn" style="margin:0" data-vdel="${i}">✕</button></div>`).join('');
+  return h+`<button class="btn small full" data-vadd style="margin-top:10px">+ Добавить визит</button></div>`;
+}
+function openVisit(){
+  sheet(`<h2>Визит или анализ</h2><div class="chips" id="vt">${VTYPES.map((x,i)=>`<button class="chip ${i?'':'on'}" data-vt="${x}">${x}</button>`).join('')}</div>
+  <label class="f">Когда</label><input id="vd" type="date" value="${today()}">
+  <label class="f">Заметка</label><textarea id="vn" placeholder="что сказали, назначения, результаты"></textarea>
+  <button class="btn main" id="ok" style="margin-top:16px">Добавить</button>`,(sh,close)=>{
+    let tp=VTYPES[0];sh.querySelectorAll('[data-vt]').forEach(b=>b.onclick=()=>{tp=b.dataset.vt;sh.querySelectorAll('[data-vt]').forEach(x=>x.classList.toggle('on',x===b))});
+    sh.querySelector('#ok').onclick=()=>{const d=sh.querySelector('#vd').value;if(!d){toast('Выбери дату');return}S.visits=S.visits||[];S.visits.push({date:d,type:tp,note:sh.querySelector('#vn').value.trim()});save();close();toast('Добавлено')};
+  });
+}
+
 function bleedOwner(k){
   if(S.mode!=='pill'||P().inactive<1)return null;
   const pi=packInfo(k);if(!pi)return null;
@@ -551,6 +614,9 @@ function bindView(){
   document.querySelectorAll('[data-skipnow]').forEach(b=>armed(b,()=>{const t=today(),old=[...P().packs],st=P().stock;startPack(t);toast('Новая пачка с сегодня',()=>{P().packs=old;P().stock=st;save();render()})}));
   document.querySelectorAll('[data-compact]').forEach(b=>b.onclick=()=>{S.compact=!S.compact;save();render()});
   document.querySelectorAll('[data-brk]').forEach(b=>b.onclick=()=>{S.brk=S.brk||{};S.brk[b.dataset.brk]=true;save();render();toast('Хорошо, перерыв как обычно')});
+  document.querySelectorAll('[data-dism]').forEach(b=>b.onclick=()=>{S.dism=S.dism||{};S.dism[b.dataset.dism]=1;save();render()});
+  document.querySelectorAll('[data-vadd]').forEach(b=>b.onclick=openVisit);
+  document.querySelectorAll('[data-vdel]').forEach(b=>armed(b,()=>{S.visits.splice(+b.dataset.vdel,1);save();render()}));
   document.querySelectorAll('[data-plan-add]').forEach(b=>b.onclick=()=>openPlan());
   document.querySelectorAll('[data-plan-del]').forEach(b=>armed(b,()=>{S.plans.splice(+b.dataset.planDel,1);save();render()}));
   document.querySelectorAll('[data-plan-fix]').forEach(b=>armed(b,()=>{const pl=S.plans[+b.dataset.planFix],f=planFix(pl);if(f&&f.packs.length){P().skip=P().skip||{};f.packs.forEach(x=>P().skip[x]=true);save();render();toast('Месячные отменены в '+f.packs.length+' '+plural(f.packs.length,'пачке','пачках','пачках'))}}));
@@ -565,8 +631,10 @@ function bindView(){
 }
 function armed(b,fn){let arm=false;const txt=b.innerHTML;b.onclick=()=>{if(!arm){arm=true;b.textContent='Точно? Нажми ещё раз';setTimeout(()=>{arm=false;b.innerHTML=txt},4000);return}fn()}}
 function shiftM(ym,n){let[y,m]=ym.split('-').map(Number);m+=n;if(m<1){m=12;y--}if(m>12){m=1;y++}return y+'-'+pad(m)}
+function padsOf(e){let t=0;for(let x=e.start;x<=e.end;x=add(x,1))t+=(S.days[x]||{}).pads||0;return t}
+function medNames(){const c={};Object.values(S.days).forEach(d=>(d.meds||[]).forEach(m=>c[m.n]=(c[m.n]||0)+1));return Object.keys(c).sort((a,b)=>c[b]-c[a]).slice(0,8)}
 function symList(){return Array.isArray(S.symList)?S.symList:SYM}
-function clean(k){const d=S.days[k];if(d&&!d.flow&&!(d.sym&&d.sym.length)&&!d.note&&!d.mood&&!d.w&&!d.temp)delete S.days[k]}
+function clean(k){const d=S.days[k];if(!d)return;if(d.meds&&!d.meds.length)delete d.meds;if(!d.pads)delete d.pads;if(!d.sx)delete d.sx;if(!d.flow&&!(d.sym&&d.sym.length)&&!d.note&&!d.mood&&!d.w&&!d.temp&&!d.pads&&!d.meds&&!d.sx)delete S.days[k]}
 function markPill(k){
   S.taken[k]={at:new Date().toISOString()};save();
   const lh=lateH(k);render();
@@ -604,13 +672,24 @@ function openDay(k){
   const html=`<h2>${fmtW(k)}</h2>${cd?`<div class="mut sm" style="margin-top:-8px">день цикла ${cd}</div>`:''}${pill}
   <h4>Кровотечение</h4><div class="chips" id="fl">${FLOW.map((f,i)=>`<button class="chip flow-${i} ${dd.flow===i?'on':''}" data-f="${i}">${f}</button>`).join('')}</div>
   <h4>Самочувствие</h4><div class="chips" id="sy">${[...symList(),...dd.sym.filter(x=>!symList().includes(x))].map(s=>`<button class="chip ${dd.sym.includes(s)?'on':''}" data-s="${esc(s)}">${esc(s)}</button>`).join('')}</div>
+  <h4>Средства гигиены за день</h4><div class="row"><div class="step" id="padst"><button type="button" data-pd="-1">−</button><b id="padv">${dd.pads||0}</b><span class="mut">шт.</span><button type="button" data-pd="1">+</button></div><span class="dim sm">прокладки, тампоны, смены чаши</span></div>
+  <h4>Обезболивающее</h4><div id="medl"></div>
+  <div class="row" style="flex-wrap:nowrap;margin-top:6px"><input id="mdn" list="mdl" placeholder="что, например: нурофен 400" style="flex:2"><input id="mdt" type="time" style="flex:1;width:auto"><button class="btn small" id="mda">+</button></div>
+  <datalist id="mdl">${medNames().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
   <h4>Настроение</h4><div class="chips">${MOOD.map(m=>`<button class="chip ${dd.mood===m?'on':''}" data-mo="${m}">${m}</button>`).join('')}</div>
   <div class="row" style="margin-top:4px;flex-wrap:nowrap"><div style="flex:1"><label class="f">Вес, кг</label><input id="wt" type="number" step="0.1" min="20" max="250" inputmode="decimal" value="${dd.w||''}"></div><div style="flex:1"><label class="f">Температура, °C</label><input id="tp" type="number" step="0.1" min="34" max="42" inputmode="decimal" value="${dd.temp||''}"></div></div>
+  <details style="margin-top:14px"${dd.sx?' open':''}><summary class="dim sm">Ещё</summary><label class="row" style="gap:10px;margin-top:8px;font-size:15px"><input type="checkbox" id="sx" ${dd.sx?'checked':''} style="width:20px;height:20px"> Была близость без презерватива</label><div class="dim sm" style="margin-top:4px">Нужно только для подсказок при пропуске таблетки. Во врачебную сводку не попадает.</div></details>
   <h4>Заметка</h4><textarea id="nt" placeholder="например: живот болел с утра, выпила нурофен">${esc(dd.note||'')}</textarea>
   ${S.mode==='pill'?`<div class="row" style="margin-top:12px"><button class="btn small" id="np">С этого дня начала новую пачку</button></div>`:''}
   <button class="btn main" id="ok" style="margin-top:16px">Готово</button>`;
   sheet(html,(sh,close)=>{
     sh.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{dd.flow=+b.dataset.f;sh.querySelectorAll('[data-f]').forEach(x=>x.classList.toggle('on',x===b))});
+    dd.meds=[...(dd.meds||[])];dd.pads=dd.pads||0;
+    sh.querySelectorAll('[data-pd]').forEach(b=>b.onclick=()=>{dd.pads=Math.max(0,Math.min(30,dd.pads+ +b.dataset.pd));sh.querySelector('#padv').textContent=dd.pads});
+    const drawMeds=()=>{sh.querySelector('#medl').innerHTML=dd.meds.length?dd.meds.map((m,i)=>`<div class="kv"><span>💊 ${esc(m.n)}</span><span class="v">${m.t||''} <button data-mdx="${i}" style="color:var(--mut);margin-left:6px">✕</button></span></div>`).join(''):'<span class="dim sm">не отмечено</span>';
+      sh.querySelectorAll('[data-mdx]').forEach(b=>b.onclick=()=>{dd.meds.splice(+b.dataset.mdx,1);drawMeds()})};
+    drawMeds();sh.querySelector('#mdt').value=k===today()?new Date().toTimeString().slice(0,5):'';
+    sh.querySelector('#mda').onclick=()=>{const n=sh.querySelector('#mdn').value.trim();if(!n)return;dd.meds.push({n,t:sh.querySelector('#mdt').value});sh.querySelector('#mdn').value='';drawMeds()};
     sh.querySelectorAll('[data-mo]').forEach(b=>b.onclick=()=>{dd.mood=dd.mood===b.dataset.mo?'':b.dataset.mo;sh.querySelectorAll('[data-mo]').forEach(x=>x.classList.toggle('on',x.dataset.mo===dd.mood))});
     sh.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{const s=b.dataset.s;const i=dd.sym.indexOf(s);i<0?dd.sym.push(s):dd.sym.splice(i,1);b.classList.toggle('on')});
     const pt=sh.querySelector('#pt');
@@ -618,7 +697,7 @@ function openDay(k){
     const ptm=sh.querySelector('#ptm');
     if(ptm)ptm.onchange=()=>{const[h,m]=ptm.value.split(':').map(Number);const old=new Date(S.taken[k].at);const d=parse(k);d.setHours(h,m,0,0);if(old.getDate()!==d.getDate()&&old>d&&h<12)d.setDate(d.getDate()+1);S.taken[k]={at:d.toISOString()};save()};
     const np=sh.querySelector('#np');if(np)np.onclick=()=>{close();startPack(k)};
-    sh.querySelector('#ok').onclick=()=>{dd.note=sh.querySelector('#nt').value.trim();const w=parseFloat(sh.querySelector('#wt').value.replace(',','.')),tp=parseFloat(sh.querySelector('#tp').value.replace(',','.'));S.days[k]={flow:dd.flow,sym:dd.sym,note:dd.note,mood:dd.mood||'',w:w>0?Math.round(w*10)/10:0,temp:tp>0?tp:0};clean(k);save();close()};
+    sh.querySelector('#ok').onclick=()=>{dd.note=sh.querySelector('#nt').value.trim();const w=parseFloat(sh.querySelector('#wt').value.replace(',','.')),tp=parseFloat(sh.querySelector('#tp').value.replace(',','.'));S.days[k]={flow:dd.flow,sym:dd.sym,note:dd.note,mood:dd.mood||'',w:w>0?Math.round(w*10)/10:0,temp:tp>0?tp:0,pads:dd.pads,meds:dd.meds,sx:sh.querySelector('#sx').checked};clean(k);save();close()};
   });
 }
 
@@ -933,7 +1012,11 @@ function doctorSummary(){
     t+='Препарат: '+P().name+', схема '+P().active+'+'+P().inactive+(P().inactive?(P().type==='placebo'?' плацебо':' перерыв'):'')+', приём в '+P().time+'\n';
     if(exp)t+='Активных таблеток выпито: '+ok+' из '+exp+', пропусков: '+(exp-ok)+', опозданий >12 ч: '+late+'\n';}
   t+='\nКровотечения:\n';
-  eps.forEach(e=>{t+='- '+fmtShort(e.start)+(e.end!==e.start?'-'+fmtShort(e.end):'')+': '+e.n+' дн., максимум "'+FLOW[e.max]+'"'+(e.kind?' ('+e.kind+')':'')+'\n'});
+  eps.forEach(e=>{let mx=0;for(let x=e.start;x<=e.end;x=add(x,1))mx=Math.max(mx,(S.days[x]||{}).pads||0);const pt=padsOf(e);t+='- '+fmtShort(e.start)+(e.end!==e.start?'-'+fmtShort(e.end):'')+': '+e.n+' дн., максимум "'+FLOW[e.max]+'"'+(pt?', средств гигиены: '+pt+' (до '+mx+' в день)':'')+(e.kind?' ('+e.kind+')':'')+'\n'});
+  const md=[];Object.entries(S.days).forEach(([k,d])=>{if(k>=from)(d.meds||[]).forEach(m=>md.push(fmtShort(k)+' '+m.n))});
+  if(md.length)t+='\nОбезболивающее ('+md.length+' раз): '+md.sort().join('; ')+'\n';
+  const vs=(S.visits||[]).filter(v=>v.date>=add(today(),-365)).sort((a,b)=>a.date<b.date?-1:1);
+  if(vs.length)t+='\nВизиты и анализы за год:\n'+vs.map(v=>'- '+fmtShort(v.date)+'.'+parse(v.date).getFullYear()+' '+v.type+(v.note?': '+v.note:'')).join('\n')+'\n';
   if(!eps.length)t+='не отмечено\n';
   const cnt={};Object.entries(S.days).forEach(([k,d])=>{if(k>=from)(d.sym||[]).forEach(s=>cnt[s]=(cnt[s]||0)+1)});
   const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]);
