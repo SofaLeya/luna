@@ -165,6 +165,44 @@ label.f{display:block;margin:12px 0 5px;font-size:14px;color:var(--mut)}
 @keyframes sh{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
 .pad{display:grid;grid-template-columns:repeat(3,72px);gap:14px}
 .pad button{width:72px;height:72px;border-radius:50%;background:var(--card2);border:1px solid var(--line);font-size:26px;color:var(--tx)}
+
+/* Compact mobile-first Luna layout */
+body{padding-bottom:70px}
+.wrap{padding:8px 12px;max-width:520px}
+header{padding:2px 0 8px}header h1{font-size:22px}header .row{gap:6px}.icon-btn{width:36px;height:36px;font-size:18px}
+.card{padding:12px;margin-bottom:8px;border-radius:16px}
+body:has(nav.tabs button[data-tab="today"].on) .petc{padding:5px 10px;gap:8px;min-height:68px}
+body:has(nav.tabs button[data-tab="today"].on) .pet{width:56px;height:62px}
+body:has(nav.tabs button[data-tab="today"].on) .bub{font-size:13px;padding:7px 10px}
+body:has(nav.tabs button[data-tab="today"].on) .hero{padding:12px 14px;text-align:left}
+body:has(nav.tabs button[data-tab="today"].on) .hero .hk{font-size:12px}
+body:has(nav.tabs button[data-tab="today"].on) .hero .hb{font-size:26px;margin:1px 0}
+body:has(nav.tabs button[data-tab="today"].on) .hero .hs{font-size:13px}
+body:has(nav.tabs button[data-tab="today"].on) .hero .hbtn{margin-top:8px;justify-content:flex-start}
+body:has(nav.tabs button[data-tab="today"].on) .hero .btn{padding:7px 11px;font-size:13px}
+body:has(nav.tabs button[data-tab="today"].on) .hero .linkbtn{margin:5px 0 0;font-size:12px;text-align:left}
+body:has(nav.tabs button[data-tab="today"].on) .ring-box{padding:10px}
+body:has(nav.tabs button[data-tab="today"].on) .ring{width:140px;height:140px}
+body:has(nav.tabs button[data-tab="today"].on) .ring .big{font-size:30px}
+body:has(nav.tabs button[data-tab="today"].on) .ring .of{font-size:11px}
+body:has(nav.tabs button[data-tab="today"].on) .ring .ph{font-size:11px;margin-top:4px}
+body:has(nav.tabs button[data-tab="today"].on) .pt{font-size:14px}
+body:has(nav.tabs button[data-tab="today"].on) .minis{gap:5px}
+body:has(nav.tabs button[data-tab="today"].on) .minis div{padding:5px}
+body:has(nav.tabs button[data-tab="today"].on) .minis span{font-size:10px}
+body:has(nav.tabs button[data-tab="today"].on) .minis b{font-size:12px}
+body:has(nav.tabs button[data-tab="today"].on) .btn.main{padding:10px 14px;font-size:15px}
+.today-extra summary{cursor:pointer;color:var(--mut);font-size:13px;padding:8px 2px;list-style:none}.today-extra summary::-webkit-details-marker{display:none}
+.today-extra[open] summary{margin-bottom:8px}
+body:has(nav.tabs button[data-tab="cal"].on) .d{aspect-ratio:1/1.03;padding-top:3px;border-radius:9px}
+body:has(nav.tabs button[data-tab="cal"].on) .d .dn{font-size:14px;margin-top:6px}
+body:has(nav.tabs button[data-tab="cal"].on) .grid{gap:3px}
+body:has(nav.tabs button[data-tab="cal"].on) .cal-head{margin-bottom:5px}
+body:has(nav.tabs button[data-tab="cal"].on) .legend{font-size:11px;margin-top:8px;gap:4px 9px}
+.ptile svg{filter:drop-shadow(0 2px 2px #0003)}
+/* Kawaii facial polish */
+.pet svg,.ptile svg{overflow:visible;filter:drop-shadow(0 3px 3px #0004)}
+@media(max-height:760px){.wrap{padding-top:4px}.card{margin-bottom:6px}nav.tabs button{padding:3px 0}}
 </style>
 </head>
 <body>
@@ -382,7 +420,7 @@ function todayView(){
     if(!pi.active&&P().type==='break')btn=`<div class="mut sm" style="text-align:center">Сегодня таблетку не пьём. Новая пачка - ${fmtW(add(pi.end,1))}</div>`;
     else if(tk){const lh=lateH(t);btn=`<button class="btn done" data-unmark="${t}">✓ Выпила в ${new Date(tk.at).toTimeString().slice(0,5)}${lh>=12?' (опоздание)':''}</button>`}
     else btn=`<button class="btn main" data-mark="${t}">Выпила 💊</button>`;
-    if(S.compact){
+    if(true){
       const sb=!pi.active&&P().type==='break'?'<span class="mut sm">перерыв</span>':tk?`<button class="btn small" style="color:var(--ok)" data-unmark="${t}">✓ ${new Date(tk.at).toTimeString().slice(0,5)}</button>`:`<button class="btn main sm2" data-mark="${t}">Выпила</button>`;
       h+=`<div class="card"><div class="row" style="justify-content:space-between;flex-wrap:nowrap"><button data-compact style="text-align:left"><b>💊 ${esc(P().name)}</b><div class="mut sm">таблетка ${pi.day} из ${pi.len} · ${phase} ▾</div></button>${sb}</div></div>`;
     }else
@@ -390,8 +428,8 @@ function todayView(){
     ${skipBtn(pi,t)}<div class="minis"><div><span>последняя активная</span><b>${fmtShort(add(pi.start,P().active-1))}</b></div><div><span>новая пачка</span><b>${fmtShort(add(pi.end,1))}</b></div>${P().stock!==null?`<div><span>в запасе</span><b>${P().stock}</b></div>`:''}</div></div>`;
   }else h+=apkNote()+petCard(t)+softAlerts(t)+hero(t);
   const dd=S.days[t]||{};
-  h+=`<div class="card"><h3>Как сегодня</h3><div class="chips">${FLOW.map((f,i)=>`<button class="chip flow-${i} ${(dd.flow||0)===i?'on':''}" data-flow="${i}">${i?'🩸 ':''}${f}</button>`).join('')}</div>
-  <div class="row" style="margin-top:10px"><button class="btn small" data-day="${t}">Самочувствие и заметка${(dd.sym&&dd.sym.length)||dd.note?' ✎':''}</button></div></div>`;
+  h+=`<details class="card today-extra"><summary>✦ Самочувствие и дополнительные записи ▾</summary><h3>Как сегодня</h3><div class="chips">${FLOW.map((f,i)=>`<button class="chip flow-${i} ${(dd.flow||0)===i?'on':''}" data-flow="${i}">${i?'🩸 ':''}${f}</button>`).join('')}</div>
+  <div class="row" style="margin-top:10px"><button class="btn small" data-day="${t}">Самочувствие и заметка${(dd.sym&&dd.sym.length)||dd.note?' ✎':''}</button></div></details>`;
   return h;
 }
 
@@ -930,7 +968,7 @@ function petSVG(id,mood,cls){
     :p.mark==='panda'?`<ellipse cx="${x}" cy="58" rx="4.4" ry="5.2" fill="#fff"/><circle cx="${x+.5}" cy="58.5" r="2.8" fill="${D}"/><circle cx="${x+1.4}" cy="57.2" r="1" fill="#fff"/>`
     :`<ellipse cx="${x}" cy="58" rx="4.6" ry="5.6" fill="${D}"/><circle cx="${x+1.6}" cy="56" r="1.8" fill="#fff"/>`;
   eyes=`<g class="peyes">${E(46)}${E(74)}</g>`;
-  const blush=`<ellipse cx="38" cy="68" rx="5.5" ry="3.2" fill="#ff8fb3" opacity=".55"/><ellipse cx="82" cy="68" rx="5.5" ry="3.2" fill="#ff8fb3" opacity=".55"/>`;
+  const blush=`<ellipse cx="38" cy="68" rx="5.5" ry="3.2" fill="#ff8fb3" opacity=".8"/><ellipse cx="82" cy="68" rx="5.5" ry="3.2" fill="#ff8fb3" opacity=".55"/>`;
   if(p.beak)mouth=`<path d="M55 65 L65 65 L60 72Z" fill="#f5a142"/>`;
   else{
     if(p.nose==='koala')mouth+=`<ellipse cx="60" cy="65" rx="6" ry="5" fill="#3b3640"/>`;
