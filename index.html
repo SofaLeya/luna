@@ -128,6 +128,16 @@ label.f{display:block;margin:12px 0 5px;font-size:14px;color:var(--mut)}
 .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#2b1b2b;border:1px solid var(--line);padding:10px 16px;border-radius:14px;z-index:30;font-size:14px;display:flex;gap:12px;align-items:center;box-shadow:0 8px 30px #0008}
 .toast button{color:var(--rose);font-weight:700}
 .hide{display:none!important}
+.lock{position:fixed;inset:0;z-index:50;background:radial-gradient(120% 60% at 50% -10%,#3a1430 0%,#0d080d 60%);display:flex;align-items:center;justify-content:center}
+.lk{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--rose)}
+.lt{font-size:22px;font-weight:700;color:var(--tx)}
+.dots{display:flex;gap:16px;margin:16px 0 22px}
+.dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--rose)}
+.dots i.on{background:var(--rose)}
+.dots.shake{animation:sh .35s}
+@keyframes sh{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.pad{display:grid;grid-template-columns:repeat(3,72px);gap:14px}
+.pad button{width:72px;height:72px;border-radius:50%;background:var(--card2);border:1px solid var(--line);font-size:26px;color:var(--tx)}
 </style>
 </head>
 <body>
@@ -418,7 +428,7 @@ function statsView(){
   h+=`</div>`;
   // заметки
   const notes=Object.entries(S.days).filter(([k,d])=>d.note).sort().reverse();
-  if(notes.length)h+=`<div class="card"><h3>Заметки</h3>${notes.slice(0,showAll?999:8).map(([k,d])=>`<button class="ep" style="width:100%;text-align:left" data-day="${k}"><span><b>${fmtShort(k)}.${String(parse(k).getFullYear()).slice(2)}</b> ${esc(d.note)}</span></button>`).join('')}</div>`;
+  if(notes.length)h+=`<div class="card"><h3>Заметки</h3><input id="nsearch" type="search" placeholder="🔍 поиск по заметкам" style="margin-bottom:6px"><div id="nnone" class="dim sm hide" style="padding:8px 0">ничего не нашлось</div>${notes.map(([k,d],i)=>`<button class="ep nt ${i>=8&&!showAll?'hide':''}" data-i="${i}" data-q="${esc((d.note+' '+(d.sym||[]).join(' ')+' '+(d.mood||'')).toLowerCase())}" style="width:100%;text-align:left" data-day="${k}"><span><b>${fmtShort(k)}.${String(parse(k).getFullYear()).slice(2)}</b> ${esc(d.note)}</span></button>`).join('')}</div>`;
   const cnt={};Object.values(S.days).forEach(d=>(d.sym||[]).forEach(s=>cnt[s]=(cnt[s]||0)+1));
   const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,6);
   if(top.length)h+=`<div class="card"><h3>Чаще всего</h3>${top.map(([s,c])=>`<div class="kv"><span class="k">${esc(s)}</span><span class="v">${c} ${plural(c,'раз','раза','раз')}</span></div>`).join('')}</div>`;
@@ -453,11 +463,13 @@ function bindView(){
   const np=$('#newpack');if(np)np.onclick=()=>{startPack(today())};
   const pm=$('#pm'),nm=$('#nm');
   if(pm){pm.onclick=()=>{calM=shiftM(calM,-1);render()};nm.onclick=()=>{calM=shiftM(calM,1);render()}}
+  const ns=$('#nsearch');if(ns)ns.oninput=()=>{const q=ns.value.trim().toLowerCase();let n=0;document.querySelectorAll('.ep.nt').forEach(b=>{const show=q?b.dataset.q.includes(q):(showAll||+b.dataset.i<8);b.classList.toggle('hide',!show);if(show)n++});$('#nnone').classList.toggle('hide',n>0)};
   const mo=$('#more');if(mo)mo.onclick=()=>{showAll=true;render()};
   const e2=$('#exp2');if(e2)e2.onclick=doctorSummary;
 }
 function armed(b,fn){let arm=false;const txt=b.innerHTML;b.onclick=()=>{if(!arm){arm=true;b.textContent='Точно? Нажми ещё раз';setTimeout(()=>{arm=false;b.innerHTML=txt},4000);return}fn()}}
 function shiftM(ym,n){let[y,m]=ym.split('-').map(Number);m+=n;if(m<1){m=12;y--}if(m>12){m=1;y++}return y+'-'+pad(m)}
+function symList(){return Array.isArray(S.symList)?S.symList:SYM}
 function clean(k){const d=S.days[k];if(d&&!d.flow&&!(d.sym&&d.sym.length)&&!d.note&&!d.mood&&!d.w&&!d.temp)delete S.days[k]}
 function markPill(k){
   S.taken[k]={at:new Date().toISOString()};save();
@@ -495,7 +507,7 @@ function openDay(k){
   }else if(pi)pill=`<h4>День ${pi.day} из ${pi.len} - перерыв</h4>`;
   const html=`<h2>${fmtW(k)}</h2>${cd?`<div class="mut sm" style="margin-top:-8px">день цикла ${cd}</div>`:''}${pill}
   <h4>Кровотечение</h4><div class="chips" id="fl">${FLOW.map((f,i)=>`<button class="chip flow-${i} ${dd.flow===i?'on':''}" data-f="${i}">${f}</button>`).join('')}</div>
-  <h4>Самочувствие</h4><div class="chips" id="sy">${SYM.map(s=>`<button class="chip ${dd.sym.includes(s)?'on':''}" data-s="${esc(s)}">${esc(s)}</button>`).join('')}</div>
+  <h4>Самочувствие</h4><div class="chips" id="sy">${[...symList(),...dd.sym.filter(x=>!symList().includes(x))].map(s=>`<button class="chip ${dd.sym.includes(s)?'on':''}" data-s="${esc(s)}">${esc(s)}</button>`).join('')}</div>
   <h4>Настроение</h4><div class="chips">${MOOD.map(m=>`<button class="chip ${dd.mood===m?'on':''}" data-mo="${m}">${m}</button>`).join('')}</div>
   <div class="row" style="margin-top:4px;flex-wrap:nowrap"><div style="flex:1"><label class="f">Вес, кг</label><input id="wt" type="number" step="0.1" min="20" max="250" inputmode="decimal" value="${dd.w||''}"></div><div style="flex:1"><label class="f">Температура, °C</label><input id="tp" type="number" step="0.1" min="34" max="42" inputmode="decimal" value="${dd.temp||''}"></div></div>
   <h4>Заметка</h4><textarea id="nt" placeholder="например: живот болел с утра, выпила нурофен">${esc(dd.note||'')}</textarea>
@@ -571,6 +583,10 @@ function openSettings(){
     <label class="f">Пачек в запасе (оставь пустым, если не считать)</label><input id="pk" type="number" min="0" max="50" value="${p.stock===null?'':p.stock}">
   </div>
   <h4>Синхронизация</h4><div id="ydbox">${ydBox()}</div>
+  <h4>Мой список самочувствия</h4>
+  <div class="chips" id="syl"></div>
+  <div class="row" style="margin-top:8px;flex-wrap:nowrap"><input id="sya" placeholder="добавить, например: спина"><button class="btn small" id="syb">+</button></div>
+  <h4>Код-пароль</h4><div id="pinbox"></div>
   <h4>Перенос из "Мой календарь"</h4>
   <div class="dim sm">Там: Настройки → Резервная копия и восстановление → сохранить копию на телефон. Потом выбери этот файл тут. Перенесутся месячные, заметки, вес и температура. То, что уже есть в Луне, не сотрётся.</div>
   <div class="row" style="margin-top:8px"><button class="btn small" id="pcb">📥 Выбрать файл копии</button><input type="file" id="pcf" class="hide"></div>
@@ -586,6 +602,13 @@ function openSettings(){
     sh.querySelector('#ps').onchange=e=>sh.querySelector('#cust').classList.toggle('hide',e.target.value!=='custom');
     sh.querySelector('#ex').onclick=exportData;
     bindYdBox(sh);
+    const sl=[...symList()];
+    const drawSy=()=>{sh.querySelector('#syl').innerHTML=sl.map((x,i)=>`<span class="chip">${esc(x)} <button data-sx="${i}" style="color:var(--mut);margin-left:4px">✕</button></span>`).join('')||'<span class="dim sm">пусто</span>';
+      sh.querySelectorAll('[data-sx]').forEach(b=>b.onclick=()=>{sl.splice(+b.dataset.sx,1);S.symList=[...sl];saveLocal();save();drawSy()})};
+    drawSy();
+    const addSy=()=>{const v=sh.querySelector('#sya').value.trim();if(!v)return;if(!sl.includes(v))sl.push(v);S.symList=[...sl];save();sh.querySelector('#sya').value='';drawSy()};
+    sh.querySelector('#syb').onclick=addSy;sh.querySelector('#sya').onkeydown=e=>{if(e.key==='Enter')addSy()};
+    drawPinBox(sh);
     sh.querySelector('#pcb').onclick=()=>sh.querySelector('#pcf').click();
     sh.querySelector('#pcf').onchange=e=>importPC(e.target.files[0],close);
     sh.querySelector('#exc').onclick=()=>{const t=JSON.stringify(S);try{navigator.clipboard.writeText(t).then(()=>toast('Копия в буфере - вставь её себе в Избранное в телеграме'),()=>toast('Не получилось скопировать'))}catch(e){toast('Не получилось скопировать')}};
@@ -715,6 +738,39 @@ function bindYdBox(sh){const a=sh.querySelector('#ydin'),b=sh.querySelector('#yd
   if(a)a.onclick=ydLogin;if(b)b.onclick=()=>ydSync(true);if(c)armed(c,()=>{ydOff();const bx=sh.querySelector('#ydbox');if(bx){bx.innerHTML=ydBox();bindYdBox(sh)}toast('Яндекс Диск отключён. Данные на телефоне остались.')})}
 function ydBadge(){const b=document.getElementById('ydb');if(b)b.innerHTML=ydIcon();const bx=document.getElementById('ydbox');if(bx){bx.innerHTML=ydBox();bindYdBox(bx.closest('.sheet'))}}
 
+/* ---------- код-пароль: хранится только на этом устройстве (хэш) ---------- */
+const PINK='luna-pin';let unlocked=false,hiddenAt=0;
+function pinHash(){try{return localStorage.getItem(PINK)}catch(e){return null}}
+async function sha(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('luna:'+t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function keypad(title,sub,onDone,extra){
+  const bg=document.createElement('div');bg.className='lock';let v='';
+  bg.innerHTML=`<div class="lk"><div style="font-size:40px">☾</div><div class="lt">${title}</div><div class="ls mut sm">${sub||''}</div><div class="dots">${'<i></i>'.repeat(4)}</div><div class="pad">${[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map(x=>x===''?'<span></span>':`<button data-k="${x}">${x}</button>`).join('')}</div>${extra||''}</div>`;
+  document.body.appendChild(bg);
+  const dots=()=>bg.querySelectorAll('.dots i').forEach((d,i)=>d.classList.toggle('on',i<v.length));
+  const api={close:()=>bg.remove(),fail:(msg)=>{v='';dots();bg.querySelector('.ls').textContent=msg;bg.querySelector('.dots').classList.add('shake');setTimeout(()=>bg.querySelector('.dots').classList.remove('shake'),400)},el:bg,sub:(t)=>{bg.querySelector('.ls').textContent=t},title:(t)=>{bg.querySelector('.lt').textContent=t}};
+  bg.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(k==='⌫')v=v.slice(0,-1);else if(v.length<4)v+=k;dots();if(v.length===4){const x=v;setTimeout(()=>{v='';dots();onDone(x,api)},120)}});
+  return api;
+}
+function lockNow(){
+  if(!pinHash()||document.querySelector('.lock'))return;unlocked=false;
+  keypad('Луна','введи код',async(x,api)=>{if(await sha(x)===pinHash()){unlocked=true;api.close()}else api.fail('неверный код')},
+    `<button class="linkbtn" id="pinforgot">Забыла код</button>`);
+  const f=document.getElementById('pinforgot');if(f)armed(f,()=>{
+    const synced=ydOn();
+    try{localStorage.removeItem(PINK);if(!synced)localStorage.removeItem(KEY);else{localStorage.removeItem(KEY);localStorage.removeItem(YD.bkey);ydSet({mod:undefined,sent:undefined})}}catch(e){}
+    location.reload()});
+}
+function drawPinBox(sh){
+  const box=sh.querySelector('#pinbox');if(!box)return;
+  box.innerHTML=pinHash()?`<div class="sm">Код включён 🔒. Луна спросит его при открытии.</div><div class="row" style="margin-top:8px"><button class="btn small" id="pinch">Сменить код</button><button class="btn small" id="pinoff">Выключить</button></div>`
+   :`<div class="dim sm">4 цифры при каждом открытии. Код хранится только на этом устройстве. Если забудешь - придётся стереть данные тут${YD.cid?' (с Яндекс Диском они вернутся)':''}.</div><button class="btn small" id="pinon" style="margin-top:8px">Поставить код</button>`;
+  const setNew=()=>{let first=null;keypad('Новый код','придумай 4 цифры',async(x,api)=>{if(!first){first=x;api.title('Ещё раз');api.sub('повтори код')}else if(x===first){try{localStorage.setItem(PINK,await sha(x))}catch(e){}unlocked=true;api.close();drawPinBox(sh);toast('Код поставлен 🔒')}else{first=null;api.title('Новый код');api.fail('не совпало, давай сначала')}},'<button class="linkbtn" id="pincancel">Отмена</button>');document.getElementById('pincancel').onclick=()=>document.querySelector('.lock').remove()};
+  const check=(then)=>{keypad('Текущий код','',async(x,api)=>{if(await sha(x)===pinHash()){api.close();then()}else api.fail('неверный код')},'<button class="linkbtn" id="pincancel">Отмена</button>');document.getElementById('pincancel').onclick=()=>document.querySelector('.lock').remove()};
+  const on=box.querySelector('#pinon'),ch=box.querySelector('#pinch'),off=box.querySelector('#pinoff');
+  if(on)on.onclick=setNew;if(ch)ch.onclick=()=>check(setNew);
+  if(off)off.onclick=()=>check(()=>{try{localStorage.removeItem(PINK)}catch(e){}drawPinBox(sh);toast('Код выключен')});
+}
+
 /* ---------- импорт из "Мой календарь" ---------- */
 async function pcFiles(buf){
   let u=new Uint8Array(buf);
@@ -802,7 +858,8 @@ setInterval(()=>{if(!document.querySelector('.sheet-bg'))render()},60000);
 render();
 if(YD.justIn){YD.justIn=false;toast('Яндекс Диск подключён');}
 ydSync();setInterval(()=>ydSync(),5*60000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)ydSync()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)hiddenAt=Date.now();else{if(pinHash()&&hiddenAt&&Date.now()-hiddenAt>60000)lockNow();ydSync()}});
+lockNow();
 if('serviceWorker' in navigator&&location.protocol==='https:'){try{navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}}
 </script>
 </body>
