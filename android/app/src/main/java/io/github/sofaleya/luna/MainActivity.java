@@ -17,6 +17,7 @@ import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
@@ -34,6 +35,7 @@ public class MainActivity extends Activity {
     private static final int FILE_REQ = 41;
 
     private WebView web;
+    private boolean backgrounded = false;
     private ValueCallback<Uri[]> fileCallback;
 
     // Подменяет navigator.share и скачивание blob-файлов: в WebView их нет,
@@ -86,6 +88,8 @@ public class MainActivity extends Activity {
         s.setAllowFileAccess(false);
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setTextZoom(100);
+        // Always revalidate the web UI; localStorage/IndexedDB remain untouched.
+        s.setCacheMode(WebSettings.LOAD_NO_CACHE);
 
         web.addJavascriptInterface(new Bridge(), "AndroidApp");
 
@@ -215,8 +219,22 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        if (backgrounded && web != null) {
+            backgrounded = false;
+            String url = web.getUrl();
+            // Never interrupt the Yandex OAuth login flow.
+            if (url != null && HOST.equals(Uri.parse(url).getHost())) {
+                web.reload();
+            }
+        }
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
+        backgrounded = true;
         android.webkit.CookieManager.getInstance().flush();
     }
 
