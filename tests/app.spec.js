@@ -240,3 +240,14 @@ test('apk: расписание уведомлений уходит в Android',
   await page.uncheck('[data-nf=period]');
   expect(await ev(page, `window.__sched.some(x=>x.id[0]==='b')`)).toBeFalsy();
 });
+
+test('apk: плашка о новой версии и "Позже"', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.AndroidApp = { setSchedule: () => {}, notificationsAllowed: () => true, askNotifications: () => true, setBars: () => {}, versionCode: () => 3 };
+  });
+  await page.route('https://api.github.com/**', r => r.fulfill({ json: { body: 'Скачать...\nСборка №5' }, headers: { 'access-control-allow-origin': '*' } }));
+  await setup(page);
+  await expect(page.locator('.alert.info').first()).toContainText('Есть новая версия Луны');
+  await page.click('#apklater');
+  await expect(page.locator('text=Есть новая версия Луны')).toHaveCount(0);
+});

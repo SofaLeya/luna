@@ -376,7 +376,7 @@ function todayView(){
       const nxt=P().type==='placebo'?'плацебо':'перерыв';
       h+=`<div class="alert info"><b>${pi.day===P().active?'Сегодня':'Завтра'} последняя активная таблетка</b>Потом ${nxt} и месячные. Делаем перерыв или отменяем месячные?<div class="row"><button class="btn small" data-brk="${pi.start}">Делаю перерыв</button><button class="btn small" data-skip="${pi.start}">🚫 Отменить месячные</button></div></div>`;
     }
-    h+=petCard(t)+softAlerts(t)+hero(t);
+    h+=apkNote()+petCard(t)+softAlerts(t)+hero(t);
     const tk=S.taken[t];let btn;
     const phase=pi.active?'активная':P().type==='placebo'?'плацебо (пустышка)':'перерыв';
     if(!pi.active&&P().type==='break')btn=`<div class="mut sm" style="text-align:center">Сегодня таблетку не пьём. Новая пачка - ${fmtW(add(pi.end,1))}</div>`;
@@ -388,7 +388,7 @@ function todayView(){
     }else
     h+=`<div class="card ring-box"><div class="pt">💊 ${esc(P().name)} <span class="mut">в ${P().time}</span> <button class="linkbtn" style="display:inline;margin:0 0 0 6px" data-compact>свернуть</button></div><div class="ring">${ringSVG(pi)}<div class="c"><div class="big">${pi.day}</div><div class="of">таблетка из ${pi.len}</div><div class="ph">${phase}</div></div></div>${btn}
     ${skipBtn(pi,t)}<div class="minis"><div><span>последняя активная</span><b>${fmtShort(add(pi.start,P().active-1))}</b></div><div><span>новая пачка</span><b>${fmtShort(add(pi.end,1))}</b></div>${P().stock!==null?`<div><span>в запасе</span><b>${P().stock}</b></div>`:''}</div></div>`;
-  }else h+=petCard(t)+softAlerts(t)+hero(t);
+  }else h+=apkNote()+petCard(t)+softAlerts(t)+hero(t);
   const dd=S.days[t]||{};
   h+=`<div class="card"><h3>Как сегодня</h3><div class="chips">${FLOW.map((f,i)=>`<button class="chip flow-${i} ${(dd.flow||0)===i?'on':''}" data-flow="${i}">${i?'🩸 ':''}${f}</button>`).join('')}</div>
   <div class="row" style="margin-top:10px"><button class="btn small" data-day="${t}">Самочувствие и заметка${(dd.sym&&dd.sym.length)||dd.note?' ✎':''}</button></div></div>`;
@@ -629,7 +629,7 @@ function bindView(){
   document.querySelectorAll('[data-skip]').forEach(b=>armed(b,()=>{P().skip=P().skip||{};P().skip[b.dataset.skip]=true;save();render();toast('Месячные в этой пачке отменены',()=>{delete P().skip[b.dataset.skip];save();render()})}));
   document.querySelectorAll('[data-unskip]').forEach(b=>b.onclick=()=>{delete P().skip[b.dataset.unskip];save();render();toast('Перерыв вернулся')});
   document.querySelectorAll('[data-skipnow]').forEach(b=>armed(b,()=>{const t=today(),old=[...P().packs],st=P().stock;startPack(t);toast('Новая пачка с сегодня',()=>{P().packs=old;P().stock=st;save();render()})}));
-  const pb=$('#petb');if(pb)pb.onclick=petTap;
+  const pb=$('#petb');if(pb)pb.onclick=petTap;apkBind();
   document.querySelectorAll('[data-compact]').forEach(b=>b.onclick=()=>{S.compact=!S.compact;save();render()});
   document.querySelectorAll('[data-brk]').forEach(b=>b.onclick=()=>{S.brk=S.brk||{};S.brk[b.dataset.brk]=true;save();render();toast('Хорошо, перерыв как обычно')});
   document.querySelectorAll('[data-dism]').forEach(b=>b.onclick=()=>{S.dism=S.dism||{};S.dism[b.dataset.dism]=1;save();render()});
@@ -987,16 +987,42 @@ function notifBox(){
   const N=Object.assign({pill:true,again:true,period:true,last:true},S.notif||{});
   let ok=true;try{ok=AndroidApp.notificationsAllowed()}catch(e){}
   const cb=(k,txt)=>`<label class="row" style="gap:10px;margin-top:8px;font-size:15px;flex-wrap:nowrap"><input type="checkbox" data-nf="${k}" ${N[k]?'checked':''} style="width:20px;height:20px;flex:none"> ${txt}</label>`;
-  return `<h4>🔔 Уведомления</h4>${ok?'':'<div class="sm" style="color:var(--warn)">Android пока не разрешил Луне уведомления. <button class="btn small" id="nfask" style="margin-top:6px">Разрешить</button></div>'}
+  return `<h4>📱 Приложение</h4><div class="sm">Версия ${apkCur()||'?'}${apkLatest()>apkCur()?` · есть новая ${apkLatest()}`:''}</div><div class="row" style="margin-top:6px"><button class="btn small" id="apkchk">Проверить обновление</button>${apkLatest()>apkCur()?`<a class="btn small" href="${APKURL}" style="text-decoration:none">Скачать</a>`:''}</div>
+  <h4>🔔 Уведомления</h4>${ok?'':'<div class="sm" style="color:var(--warn)">Android пока не разрешил Луне уведомления. <button class="btn small" id="nfask" style="margin-top:6px">Разрешить</button></div>'}
   ${S.mode==='pill'?cb('pill','Таблетка - в '+P().time+' (время меняется выше)')+cb('again','Повторить через 2 часа, если не отмечена')+cb('last','Последняя активная: перерыв или отменить месячные?'):''}
   ${cb('period','За день до месячных')}
   <div class="dim sm" style="margin-top:6px">На заблокированном экране видно только "Луна", без подробностей.</div>`;
 }
 function bindNotif(sh){
+  const c=sh.querySelector('#apkchk');if(c)c.onclick=()=>apkCheck(true);
   sh.querySelectorAll('[data-nf]').forEach(c=>c.onchange=()=>{S.notif=Object.assign({},S.notif||{},{[c.dataset.nf]:c.checked});save()});
   const a=sh.querySelector('#nfask');if(a)a.onclick=()=>{try{AndroidApp.askNotifications()}catch(e){}toast('Подтверди в окне Android')};
 }
 if(APP){try{AndroidApp.setBars('#0d080d')}catch(e){}}
+/* новая версия apk: раз в день (после 10:00) смотрим номер сборки в Releases и сравниваем со своим */
+const APKURL='https://github.com/sofaleya/luna/releases/latest/download/luna.apk';
+function apkCur(){try{return +AndroidApp.versionCode()||0}catch(e){return 0}}
+function apkLatest(){try{return +localStorage.getItem('luna-apklast')||0}catch(e){return 0}}
+function apkCheck(force){
+  if(!APP)return;
+  try{const ts=+localStorage.getItem('luna-apkchk')||0,n=new Date();let mk=new Date(n.getFullYear(),n.getMonth(),n.getDate(),10).getTime();if(+n<mk)mk-=864e5;if(ts>=mk&&!force)return;localStorage.setItem('luna-apkchk',String(Date.now()))}catch(e){return}
+  fetch('https://api.github.com/repos/sofaleya/luna/releases/tags/apk').then(r=>r.ok?r.json():null).then(j=>{
+    const m=j&&String(j.body||'').match(/№(\d+)/);if(!m)return;
+    try{localStorage.setItem('luna-apklast',m[1])}catch(e){}
+    if(+m[1]>apkCur()){if(!document.querySelector('.sheet-bg'))render();if(force)toast('Есть новая версия!')}else if(force)toast('У тебя последняя версия ✓')
+  }).catch(()=>{if(force)toast('Не получилось проверить - нет связи')});
+}
+function apkNote(){
+  if(!APP)return '';const lt=apkLatest();let skip=0;try{skip=+localStorage.getItem('luna-apkskip')||0}catch(e){}
+  if(!lt||lt<=apkCur()||skip>=lt)return '';
+  const synced=ydOn()&&YD.st==='ok';
+  const step1=synced?'<div class="sm">1. Данные уже в Яндекс Диске ✓</div>':`<div class="sm">1. На всякий случай сохрани копию данных:</div><div class="row" style="margin-top:6px"><button class="btn small" id="apkbk">Сохранить копию</button></div>`;
+  return `<div class="alert info"><b>Есть новая версия Луны</b>${step1}<div class="sm" style="margin-top:8px">2. Скачай и открой файл, нажми "Установить". Удалять старую не нужно: встанет поверх, данные останутся.</div><div class="row"><a class="btn small" href="${APKURL}" style="text-decoration:none;color:var(--rose)">Скачать новую версию</a><button class="btn small" id="apklater">Позже</button></div></div>`;
+}
+function apkBind(){
+  const b=document.getElementById('apkbk');if(b)b.onclick=exportData;
+  const l=document.getElementById('apklater');if(l)l.onclick=()=>{try{localStorage.setItem('luna-apkskip',String(apkLatest()))}catch(e){}render()};
+}
 
 /* ---------- синхронизация через Яндекс Диск ----------
    Данные лежат у самой хозяйки: "Приложения/Луна" на её Диске. Приложение видит только эту папку.
@@ -1201,7 +1227,7 @@ render();
 if(YD.justIn){YD.justIn=false;toast('Яндекс Диск подключён');}
 ydSync();setInterval(()=>ydSync(),5*60000);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)hiddenAt=Date.now();else{nativeSchedule();if(pinHash()&&hiddenAt&&Date.now()-hiddenAt>60000)lockNow();ydSync()}});
-lockNow();if(!pinHash())runAct();nativeSchedule();if(APP&&S.setup){try{if(!AndroidApp.notificationsAllowed()&&!S.nfAsked){S.nfAsked=1;saveLocal();AndroidApp.askNotifications()}}catch(e){}}
+lockNow();if(!pinHash())runAct();nativeSchedule();apkCheck();if(APP&&S.setup){try{if(!AndroidApp.notificationsAllowed()&&!S.nfAsked){S.nfAsked=1;saveLocal();AndroidApp.askNotifications()}}catch(e){}}
 if('serviceWorker' in navigator&&location.protocol==='https:'){try{navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}}
 </script>
 </body>
