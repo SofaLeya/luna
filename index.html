@@ -426,7 +426,7 @@ function calView(){
   h+=`</div><div class="legend">`;
   if(S.mode==='pill')h+=`<span><b style="color:var(--ok)">●</b> выпила</span><span><b style="color:var(--bad)">✕</b> пропуск</span><span><b style="color:var(--bad)">!</b> опоздание 12ч+</span><span><i style="background:#1a161c;border:1px solid var(--line)"></i>${P().type==='placebo'?'плацебо':'перерыв'}</span>`;
   h+=`<span><i style="background:#7a1f43"></i>месячные</span><span><i style="background:#3a1a2c;border:1.5px dashed var(--rose)"></i>прогноз месячных</span><span><i style="background:var(--warn);width:6px;height:6px;border-radius:50%"></i> заметка</span>${(S.plans||[]).length?'<span><i style="box-shadow:inset 0 -3px 0 #a77bff"></i>важные даты</span>':''}</div></div>`;
-  h+=`<div class="dim sm" style="text-align:center">Нажми на день, чтобы отметить. Листай месяцы свайпом</div>`;
+  h+=`<div class="dim sm" style="text-align:center">Нажми на дату, чтобы отметить или убрать месячные. Удерживай дату для дополнительных записей. Листай месяцы свайпом</div>`;
   return h;
 }
 
@@ -589,6 +589,18 @@ function openPlan(){
       S.plans=S.plans||[];S.plans.push({name:sh.querySelector('#pln').value.trim(),from:f,to});save();close();toast('Добавлено')};
   });
 }
+function toggleCalendarPeriod(k){
+  if(k>today()){toast('Будущие дни пока нельзя отмечать');return}
+  const previous=S.days[k]?S.days[k].flow||0:0;
+  S.days[k]=S.days[k]||{sym:[],note:''};
+  S.days[k].flow=previous?0:2;
+  clean(k);save();render();
+  toast(previous?'Месячные: отметка снята':'Месячные отмечены',()=>{
+    S.days[k]=S.days[k]||{sym:[],note:''};
+    S.days[k].flow=previous;clean(k);save();render();
+  });
+}
+
 function rangeTap(k){
   if(!calSel.a){calSel.a=k;render();return}
   let a=calSel.a,b=k;if(b<a)[a,b]=[b,a];
@@ -613,7 +625,12 @@ function bindView(){
   document.querySelectorAll('[data-unmark]').forEach(b=>b.onclick=()=>{const k=b.dataset.unmark,old=S.taken[k];delete S.taken[k];save();render();toast('Отметка снята',()=>{S.taken[k]=old;save();render()})});
   document.querySelectorAll('[data-help]').forEach(b=>b.onclick=()=>openHelp(b.dataset.help));
   document.querySelectorAll('[data-flow]').forEach(b=>b.onclick=()=>{const t=today();S.days[t]=S.days[t]||{};S.days[t].flow=+b.dataset.flow;clean(t);save();render()});
-  document.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{if(calSel&&tab==='cal')rangeTap(b.dataset.day);else openDay(b.dataset.day)});
+  document.querySelectorAll('[data-day]').forEach(b=>{
+    if(tab==='cal'){
+      b.onclick=()=>{if(calSel){rangeTap(b.dataset.day);return}toggleCalendarPeriod(b.dataset.day)};
+      b.oncontextmenu=e=>{e.preventDefault();if(!calSel)openDay(b.dataset.day)};
+    }else b.onclick=()=>openDay(b.dataset.day);
+  });
   document.querySelectorAll('[data-start]').forEach(b=>b.onclick=()=>{const t=today();S.days[t]=S.days[t]||{};S.days[t].flow=Math.max(S.days[t].flow||0,3);save();render();toast('Отмечено: месячные начались')});
   document.querySelectorAll('[data-cont]').forEach(b=>b.onclick=()=>{const t=today(),y=S.days[add(t,-1)];S.days[t]=S.days[t]||{};S.days[t].flow=y&&y.flow?y.flow:2;save();render()});
   document.querySelectorAll('[data-end]').forEach(b=>b.onclick=()=>{const cp=curPeriod(today());if(cp){S.ended[cp.e.start]=true;save();render();toast('Отмечено, что закончились',()=>{delete S.ended[cp.e.start];save();render()})}});
