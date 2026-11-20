@@ -51,7 +51,7 @@ jobs:
       - name: Собрать папку сайта
         run: |
           mkdir _site
-          cp index.html sw.js manifest.webmanifest icon-*.png _site/
+          cp index.html sw.js version.txt manifest.webmanifest icon-*.png _site/
           [ -d .well-known ] && cp -r .well-known _site/ || true
           ls _site
       - uses: actions/configure-pages@v6
