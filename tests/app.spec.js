@@ -73,7 +73,8 @@ test('на плацебо: отменить месячные = новая пач
   await setup(page, { day: 24 });
   await page.click('[data-compact]');
   await page.click('[data-skipnow]'); await page.click('[data-skipnow]');
-  await expect(page.locator('[data-compact]')).toContainText('таблетка 1 из');
+  expect(await ev(page, 'packInfo(today()).day')).toBe(1);
+  await expect(page.locator('.ring .big')).toHaveText('1');
 });
 
 test('месячные: начались, на следующий день спрашивает, отметила по ошибке', async ({ page }) => {
