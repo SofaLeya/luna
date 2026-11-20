@@ -154,7 +154,9 @@ const PRESETS=[
 let S=load();
 function def(){return{v:1,setup:false,since:null,mode:'pill',pill:{name:'Ярина Плюс',preset:'21p7',active:21,inactive:7,type:'placebo',time:'21:00',packs:[],stock:null,skip:{}},taken:{},days:{},ended:{},cyc:{len:28,auto:true,dur:5,after:2}}}
 function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);return Object.assign(def(),o,{pill:Object.assign(def().pill,o.pill||{}),cyc:Object.assign(def().cyc,o.cyc||{})})}}catch(e){}return def()}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Не получилось сохранить в браузере - сделай копию в настройках')}}
+function fixS(o){return Object.assign(def(),o,{pill:Object.assign(def().pill,o.pill||{}),cyc:Object.assign(def().cyc,o.cyc||{})})}
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Не получилось сохранить в браузере - сделай копию в настройках')}}
+function save(){saveLocal();if(typeof ydOn==='function'&&ydOn()){ydSet({chg:Date.now()});clearTimeout(YD.t);YD.t=setTimeout(ydSync,2500)}}
 
 /* ---------- даты ---------- */
 const pad=n=>String(n).padStart(2,'0');
@@ -292,9 +294,9 @@ function render(){
   document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
   document.querySelector('nav.tabs').classList.toggle('hide',!S.setup);
   if(!S.setup){$('#app').innerHTML=setupView();bindSetup();return}
-  $('#app').innerHTML=`<header><h1><span>☾</span> Луна</h1><div class="row"><button class="icon-btn" id="hlp" aria-label="Подсказки">?</button><button class="icon-btn" id="set" aria-label="Настройки">⚙︎</button></div></header>`+
+  $('#app').innerHTML=`<header><h1><span>☾</span> Луна</h1><div class="row"><button class="icon-btn" id="ydb" aria-label="Синхронизация">${ydIcon()}</button><button class="icon-btn" id="hlp" aria-label="Подсказки">?</button><button class="icon-btn" id="set" aria-label="Настройки">⚙︎</button></div></header>`+
     (tab==='today'?todayView():tab==='cal'?calView():statsView());
-  $('#set').onclick=openSettings;$('#hlp').onclick=()=>openHelp();
+  $('#set').onclick=openSettings;$('#ydb').onclick=()=>{if(ydOn())ydSync(true);else openSettings()};$('#hlp').onclick=()=>openHelp();
   bindView();
 }
 
@@ -568,6 +570,7 @@ function openSettings(){
     <div class="dim sm" style="margin-top:4px">Если сбилось - поправь число, пачка пересчитается.</div>
     <label class="f">Пачек в запасе (оставь пустым, если не считать)</label><input id="pk" type="number" min="0" max="50" value="${p.stock===null?'':p.stock}">
   </div>
+  <h4>Синхронизация</h4><div id="ydbox">${ydBox()}</div>
   <h4>Перенос из "Мой календарь"</h4>
   <div class="dim sm">Там: Настройки → Резервная копия и восстановление → сохранить копию на телефон. Потом выбери этот файл тут. Перенесутся месячные, заметки, вес и температура. То, что уже есть в Луне, не сотрётся.</div>
   <div class="row" style="margin-top:8px"><button class="btn small" id="pcb">📥 Выбрать файл копии</button><input type="file" id="pcf" class="hide"></div>
@@ -582,6 +585,7 @@ function openSettings(){
     sh.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m;sh.querySelectorAll('[data-m]').forEach(x=>x.classList.toggle('on',x===b));sh.querySelector('#pillset').classList.toggle('hide',mode!=='pill');sh.querySelectorAll('[data-for]').forEach(x=>x.classList.toggle('hide',x.dataset.for!==mode))});
     sh.querySelector('#ps').onchange=e=>sh.querySelector('#cust').classList.toggle('hide',e.target.value!=='custom');
     sh.querySelector('#ex').onclick=exportData;
+    bindYdBox(sh);
     sh.querySelector('#pcb').onclick=()=>sh.querySelector('#pcf').click();
     sh.querySelector('#pcf').onchange=e=>importPC(e.target.files[0],close);
     sh.querySelector('#exc').onclick=()=>{const t=JSON.stringify(S);try{navigator.clipboard.writeText(t).then(()=>toast('Копия в буфере - вставь её себе в Избранное в телеграме'),()=>toast('Не получилось скопировать'))}catch(e){toast('Не получилось скопировать')}};
@@ -623,10 +627,11 @@ function setupView(){
     <label class="f">Когда начались последние месячные?</label><input id="ls" type="date" value="${today()}">
   </div>
   ${cycBlock('pill',S.cyc)}
-  <button class="btn main" id="go" style="margin-top:18px">Начать</button></div>`;
+  <button class="btn main" id="go" style="margin-top:18px">Начать</button></div>
+  ${YD.cid?`<div class="card" style="text-align:center"><div class="mut sm">Уже пользуешься Луной на другом устройстве?</div>${ydOn()?`<div class="sm" style="margin-top:6px">${YD.st==='err'?esc(YD.msg):'Загружаю данные из Яндекс Диска…'}</div>`:'<button class="btn small" id="ydin" style="margin-top:8px">Войти через Яндекс</button>'}</div>`:''}`;
 }
 function bindSetup(){
-  let mode='pill';const c=S.cyc;bindSteppers($('#app'),c,U);
+  let mode='pill';const c=S.cyc;bindSteppers($('#app'),c,U);const yi=$('#ydin');if(yi)yi.onclick=ydLogin;
   document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m;document.querySelectorAll('[data-m]').forEach(x=>x.classList.toggle('on',x===b));$('#sp').classList.toggle('hide',mode!=='pill');$('#sn').classList.toggle('hide',mode==='pill');document.querySelectorAll('[data-for]').forEach(x=>x.classList.toggle('hide',x.dataset.for!==mode))});
   $('#go').onclick=()=>{
     S.mode=mode;c.auto=$('#cauto').checked;
@@ -636,6 +641,79 @@ function bindSetup(){
     S.setup=true;S.since=today();save();render();
   };
 }
+
+/* ---------- синхронизация через Яндекс Диск ----------
+   Данные лежат у самой хозяйки: "Приложения/Луна" на её Диске. Приложение видит только эту папку.
+   Один файл luna.json + копии по дням в папке "Копии" (последние 14). */
+const YD={cid:'',redir:'https://sofaleya.github.io/luna/',api:'https://cloud-api.yandex.net/v1/disk/resources',file:'app:/luna.json',dir:'app:/Копии',key:'luna-yd',bkey:'luna-yd-base',busy:false,again:false,t:null,st:'',msg:''};
+function ydGet(){try{return JSON.parse(localStorage.getItem(YD.key)||'{}')||{}}catch(e){return{}}}
+function ydSet(p){const m=ydGet();for(const k in p){if(p[k]===undefined)delete m[k];else m[k]=p[k]}try{localStorage.setItem(YD.key,JSON.stringify(m))}catch(e){}return m}
+function ydOn(){return !!(YD.cid&&ydGet().tok)}
+function ydBase(){try{const t=localStorage.getItem(YD.bkey);return t?JSON.parse(t):undefined}catch(e){return undefined}}
+function ydBaseSet(d){try{localStorage.setItem(YD.bkey,JSON.stringify(d))}catch(e){}}
+(function(){const h=location.hash||'';if(h.indexOf('access_token=')<0&&h.indexOf('error=')<0)return;
+  const q=new URLSearchParams(h.slice(1));try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}
+  if(q.get('access_token')){ydSet({tok:q.get('access_token'),exp:Date.now()+(+q.get('expires_in')||31536000)*1000,mod:undefined,sent:undefined});YD.justIn=true}
+  else YD.msg='Яндекс не дал доступ'+(q.get('error')==='access_denied'?': вход отменён':'')})();
+function ydLogin(){location.href='https://oauth.yandex.ru/authorize?response_type=token&client_id='+YD.cid+'&redirect_uri='+encodeURIComponent(YD.redir)+'&force_confirm=yes'}
+function ydOff(){try{localStorage.removeItem(YD.key);localStorage.removeItem(YD.bkey)}catch(e){}YD.st='';render()}
+function ydReq(method,url){return fetch(url,{method,headers:{Authorization:'OAuth '+ydGet().tok}}).then(r=>{if(r.status===401){ydSet({tok:undefined,mod:undefined});YD.msg='Вход в Яндекс устарел, войди заново';throw{code:401}}return r})}
+function ydOk(r){if(!r.ok)throw{code:r.status};return r}
+function ydMeta(){return ydReq('GET',YD.api+'?fields=modified&path='+encodeURIComponent(YD.file)).then(r=>r.status===404?null:ydOk(r).json())}
+function ydDownload(){return ydReq('GET',YD.api+'/download?path='+encodeURIComponent(YD.file)).then(r=>ydOk(r).json()).then(j=>fetch(j.href,{credentials:'omit',referrerPolicy:'no-referrer'})).then(r=>ydOk(r).text()).then(t=>{try{return JSON.parse(t)}catch(e){throw{code:'bad'}}})}
+function ydUpload(path,text){return ydReq('GET',YD.api+'/upload?overwrite=true&path='+encodeURIComponent(path)).then(r=>ydOk(r).json()).then(j=>fetch(j.href,{method:'PUT',body:new Blob([text],{type:'application/json'})})).then(ydOk)}
+async function ydDaily(day){
+  await ydReq('PUT',YD.api+'?path='+encodeURIComponent(YD.dir)).then(r=>{if(r.status!==409)ydOk(r)});
+  await ydReq('POST',YD.api+'/copy?overwrite=true&from='+encodeURIComponent(YD.file)+'&path='+encodeURIComponent(YD.dir+'/luna-'+day+'.json')).then(ydOk);
+  const r=await ydReq('GET',YD.api+'?limit=200&sort=name&fields=_embedded.items.name,_embedded.items.path&path='+encodeURIComponent(YD.dir)).then(r=>ydOk(r).json());
+  const it=((r._embedded&&r._embedded.items)||[]).filter(x=>/^luna-\d{4}-\d\d-\d\d\.json$/.test(x.name));
+  for(let i=0;i<it.length-14;i++){try{await ydReq('DELETE',YD.api+'?permanently=true&path='+encodeURIComponent(it[i].path))}catch(e){}}
+}
+/* склейка: b - что было в Диске при прошлой синхронизации, l - этот телефон, r - Диск сейчас */
+const m3eq=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const m3obj=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
+const m3prims=a=>Array.isArray(a)&&a.every(x=>x===null||typeof x!=='object');
+function merge3(b,l,r){
+  if(m3eq(l,r))return l;if(m3eq(b,l))return r;if(m3eq(b,r))return l;
+  if(l===undefined)return r;if(r===undefined)return l;
+  if(m3obj(l)&&m3obj(r)){const bo=m3obj(b)?b:{},o={};for(const k of new Set([...Object.keys(r),...Object.keys(l)])){const v=merge3(bo[k],l[k],r[k]);if(v!==undefined)o[k]=v}return o}
+  if(m3prims(l)&&m3prims(r)){const bs=m3prims(b)?b.map(String):[],ls=l.map(String),rs=r.map(String),res=[],had={};
+    for(const x of [...l,...r]){const k=String(x);if(had[k])continue;had[k]=1;if(bs.includes(k)&&(!ls.includes(k)||!rs.includes(k)))continue;res.push(x)}return res}
+  return l;
+}
+async function ydPush(){
+  const chg=ydGet().chg||0;
+  await ydUpload(YD.file,JSON.stringify({v:1,app:'luna',savedAt:Date.now(),data:S}));
+  const meta=await ydMeta();ydSet({mod:meta&&meta.modified,sent:chg});ydBaseSet(S);
+  const day=today();if(ydGet().daily!==day){try{await ydDaily(day);ydSet({daily:day})}catch(e){}}
+}
+async function ydSync(loud){
+  if(!ydOn())return;if(YD.busy){YD.again=true;return}
+  YD.busy=true;YD.st='wait';ydBadge();
+  try{
+    const m=ydGet(),meta=await ydMeta();
+    if(meta&&meta.modified!==m.mod){
+      const r=await ydDownload();if(!r||!r.data||!r.data.pill||!r.data.days)throw{code:'bad'};
+      const mine=JSON.parse(JSON.stringify(S));
+      const merged=!S.setup?r.data:merge3(m.mod?ydBase():undefined,mine,r.data);
+      if(!m3eq(merged,mine)){S=fixS(merged);saveLocal();if(!document.querySelector('.sheet-bg'))render()}else if(!S.setup)render()
+      ydSet({mod:meta.modified});ydBaseSet(r.data);
+      if(!m3eq(merged,r.data))await ydPush();
+    }else if(!meta||(m.chg||0)>(m.sent||0))await ydPush();
+    ydSet({last:Date.now()});YD.st='ok';YD.msg='';if(loud)toast('Синхронизировано ✓');
+  }catch(e){YD.st='err';if(!YD.msg)YD.msg=e&&e.code?('ошибка '+e.code):'нет связи с Яндексом';if(loud)toast('Не получилось: '+YD.msg)}
+  YD.busy=false;ydBadge();if(YD.again){YD.again=false;ydSync()}
+}
+function ydIcon(){if(!ydOn())return '<span style="opacity:.45">☁︎</span>';const c=YD.st==='err'?'var(--bad)':YD.st==='wait'?'var(--warn)':'var(--ok)';return `<span style="color:${c}">☁︎</span>`}
+function ydWhen(){const l=ydGet().last;if(!l)return 'ещё не было';const d=new Date(l);return (key(d)===today()?'сегодня':fmt(key(d)))+' в '+d.toTimeString().slice(0,5)}
+function ydBox(){
+  if(!YD.cid)return `<div class="dim sm">Скоро: ждём подключения приложения к Яндексу.</div>`;
+  if(!ydOn())return `<div class="dim sm">Данные будут храниться в твоём Яндекс Диске, в папке "Приложения/Луна". Видишь их только ты, и они будут одинаковые на всех устройствах.</div>${YD.msg?`<div class="sm" style="color:var(--bad);margin-top:6px">${esc(YD.msg)}</div>`:''}<button class="btn small" id="ydin" style="margin-top:8px">Войти через Яндекс</button>`;
+  return `<div class="sm">Яндекс Диск подключён ${ydIcon()}<br><span class="mut">последняя синхронизация: ${ydWhen()}</span>${YD.st==='err'?`<br><span style="color:var(--bad)">${esc(YD.msg)}</span>`:''}</div><div class="row" style="margin-top:8px"><button class="btn small" id="ydnow">Синхронизировать сейчас</button><button class="btn small" id="ydout">Отключить</button></div>`;
+}
+function bindYdBox(sh){const a=sh.querySelector('#ydin'),b=sh.querySelector('#ydnow'),c=sh.querySelector('#ydout');
+  if(a)a.onclick=ydLogin;if(b)b.onclick=()=>ydSync(true);if(c)armed(c,()=>{ydOff();const bx=sh.querySelector('#ydbox');if(bx){bx.innerHTML=ydBox();bindYdBox(sh)}toast('Яндекс Диск отключён. Данные на телефоне остались.')})}
+function ydBadge(){const b=document.getElementById('ydb');if(b)b.innerHTML=ydIcon();const bx=document.getElementById('ydbox');if(bx){bx.innerHTML=ydBox();bindYdBox(bx.closest('.sheet'))}}
 
 /* ---------- импорт из "Мой календарь" ---------- */
 async function pcFiles(buf){
@@ -694,7 +772,7 @@ async function importPC(file,close){
 /* ---------- копии и сводка ---------- */
 function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
 function exportData(){download('luna-'+today()+'.json',JSON.stringify(S,null,1),'application/json');toast('Копия скачана')}
-function loadText(txt,close){try{const o=JSON.parse(txt);if(!o||!o.pill||!o.days)throw 0;S=Object.assign(def(),o,{pill:Object.assign(def().pill,o.pill),cyc:Object.assign(def().cyc,o.cyc||{})});save();close();toast('Копия загружена')}catch(e){toast('Это не похоже на копию Луны')}}
+function loadText(txt,close){try{const o=JSON.parse(txt);if(!o||!o.pill||!o.days)throw 0;S=fixS(o);save();close();toast('Копия загружена')}catch(e){toast('Это не похоже на копию Луны')}}
 function importData(f,close){if(!f)return;const r=new FileReader();r.onload=()=>loadText(r.result,close);r.readAsText(f)}
 function doctorSummary(){
   const from=add(today(),-183);const eps=episodes().filter(e=>e.end>=from);
@@ -722,6 +800,9 @@ document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>{tab=b.dat
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()});
 setInterval(()=>{if(!document.querySelector('.sheet-bg'))render()},60000);
 render();
+if(YD.justIn){YD.justIn=false;toast('Яндекс Диск подключён');}
+ydSync();setInterval(()=>ydSync(),5*60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)ydSync()});
 if('serviceWorker' in navigator&&location.protocol==='https:'){try{navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}}
 </script>
 </body>
