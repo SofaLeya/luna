@@ -322,7 +322,7 @@ function medsCard(){
 const VTYPES=['Гинеколог','УЗИ','Анализы','Маммолог','Другое'];
 function visitsCard(){
   const vs=(S.visits||[]).map((v,i)=>({v,i})).sort((a,b)=>a.v.date<b.v.date?1:-1);
-  let h=`<div class="card"><h3>🩺 Врачи и анализы</h3>`;
+  let h=`<div class="card care-card"><h3>${icon('care')} Врачи и анализы</h3>`;
   if(!vs.length)h+=`<div class="dim sm">Добавь последний визит к гинекологу - через год Луна напомнит записаться.</div>`;
   h+=previewList('visits',vs.map(({v,i})=>`<div class="ep"><span><b>${fmtShort(v.date)}.${String(parse(v.date).getFullYear()).slice(2)}</b> ${esc(v.type)}${v.note?`<div class="mut sm">${esc(v.note)}</div>`:''}</span><button class="linkbtn" style="margin:0" data-vdel="${i}" aria-label="Удалить визит">✕</button></div>`),3);
   return h+`<button class="btn small full" data-vadd style="margin-top:10px">+ Добавить визит</button></div>`;
@@ -374,7 +374,7 @@ function planFix(pl){
 }
 function plansCard(){
   const pls=(S.plans||[]).map((p,i)=>({p,i})).filter(x=>x.p.to>=today()).sort((a,b)=>a.p.from<b.p.from?-1:1);
-  let h=`<div class="card"><h3>✈️ Важные даты</h3>`;
+  let h=`<div class="card care-card"><h3>${icon('calendar')} Важные даты</h3>`;
   if(!pls.length)h+=`<div class="dim sm">Добавьте даты, чтобы сравнить их с прогнозом месячных.</div>`;
   pls.forEach(({p,i})=>{
     const hits=planHits(p);

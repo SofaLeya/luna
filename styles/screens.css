@@ -237,6 +237,7 @@ html[data-wallpaper]:not([data-wallpaper="dream"]) .sky-hero::before { backgroun
 .legend .note-key { background:var(--warn); width:6px; height:6px; border-radius:50%; }
 .legend-fertile { width:14px; height:14px; color:#d5e9a2; }
 
+.care-card h3 .icon { width:16px; height:16px; color:var(--rose); }
 .settings-links { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:10px 0 14px; }
 #sya { min-width:0; }
 .settings-links .btn { padding:9px 6px; min-height:44px; font-size:clamp(12px,3.45vw,15px); }
