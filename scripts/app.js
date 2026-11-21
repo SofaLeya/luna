@@ -784,12 +784,6 @@ function petSay(t){
   const cd=cycleDay(t);
   return{m:'idle',s:pickBy([cd?`День цикла ${cd}. Всё спокойно 🌙`:'Привет! 🌙','Я тут 🐾','Как ты сегодня?',h<12?'Доброе утро ☀️':'Хорошего вечера ✨'],seed)};
 }
-function petTap(){
-  const b=document.getElementById('petb');if(!b)return;
-  b.classList.remove('hop');void b.offsetWidth;b.classList.add('hop');
-  const hrt=document.createElement('span');hrt.className='heart';hrt.setAttribute('aria-hidden','true');hrt.innerHTML=icon('heart');b.appendChild(hrt);setTimeout(()=>hrt.remove(),1000);
-  const bub=document.getElementById('petbub');if(bub){bub.textContent=PETS[S.pet].snd;clearTimeout(window._pbt);window._pbt=setTimeout(()=>{bub.textContent=petSay(today()).s},2500)}
-}
 /* ---------- приложение для Android (apk): уведомления и цвет полосок ---------- */
 const APP=!!(window.AndroidApp&&window.AndroidApp.setSchedule);
 function nativeSchedule(){
