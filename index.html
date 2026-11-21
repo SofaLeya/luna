@@ -283,14 +283,71 @@ nav.tabs .in{max-width:520px}
 nav.tabs button{font-size:11px;gap:1px}
 nav.tabs button .e{font-size:21px}
 @media(max-width:380px){.wrap{padding-left:10px;padding-right:10px}.card{padding:11px}.hero .hb{font-size:26px}.icon-btn{width:36px;height:36px}}
+
+/* Lavender Dreams v2 - illustration-led, mobile-first new screens */
+body{background:radial-gradient(ellipse at 45% -20%,#56417999,transparent 65%),linear-gradient(160deg,#130d23,#19112e 52%,#0f0a1b) fixed}
+body:before{background:radial-gradient(ellipse at 9% 20%,#ac8dcd16,transparent 60%),radial-gradient(ellipse at 97% 70%,#b588d91b,transparent 68%)}
+.wrap{max-width:520px;padding:10px 14px 30px}
+header{height:56px}
+header h1{font-size:26px;letter-spacing:.15px}
+header h1 span{font-family:Georgia,serif;color:#e1c1fa}
+.icon-btn{border-radius:15px;background:linear-gradient(140deg,#433157,#251b3c)}
+.card{border-radius:22px;border-color:#8e6aaa55;background:linear-gradient(155deg,#342445df,#211832ed);box-shadow:0 10px 30px #09051755,inset 0 1px #ffe9ff15}
+.dream-scene{height:245px;position:relative;overflow:hidden;isolation:isolate;margin:0 0 11px;border-radius:27px;border:1px solid #c6a0e05a;background:radial-gradient(ellipse at 52% 46%,#8e68b757,transparent 61%),radial-gradient(ellipse at 100% 0%,#71518d99,transparent 55%),linear-gradient(165deg,#39274f,#241734 75%);box-shadow:0 16px 32px #0c071b80,inset 0 1px #ffffff2e}
+.dream-kicker{position:absolute;left:0;right:0;top:12px;text-align:center;color:#ead1fa;font-size:11px;letter-spacing:2.1px;font-weight:700;text-shadow:0 2px 6px #21102c}
+.dream-moon{position:absolute;font:58px Georgia,serif;color:#e9d0ff;left:20px;top:37px;text-shadow:0 0 25px #c4a2ff7a;transform:rotate(-12deg)}
+.dream-stars{position:absolute;right:25px;top:45px;color:#f5d7ff;font-size:18px;letter-spacing:16px;text-shadow:0 0 15px #f9daff}
+.dream-stars span{position:absolute;top:57px;right:48px;font-size:22px}
+.dream-cloud{position:absolute;border-radius:50%;filter:blur(6px);z-index:-1}
+.cloud-one{width:190px;height:70px;left:-32px;bottom:18px;background:radial-gradient(ellipse at 25% 35%,#c4a4e7ba,transparent 71%),radial-gradient(ellipse at 70% 59%,#aa89d5c9,transparent 71%)}
+.cloud-two{width:245px;height:90px;right:-50px;bottom:-10px;background:radial-gradient(ellipse at 30% 41%,#ceb4efad,transparent 73%),radial-gradient(ellipse at 77% 44%,#a68accb8,transparent 70%)}
+.cloud-three{width:155px;height:56px;right:-25px;top:47px;background:radial-gradient(ellipse,#a887cc63,transparent)}
+.dream-mascot{position:absolute;top:37px;left:50%;transform:translateX(-50%);width:130px;height:130px;display:grid;place-items:center;filter:drop-shadow(0 14px 11px #1f123daa);z-index:1}
+.dream-mascot svg{width:125px;height:125px;overflow:visible}
+.dream-empty-mascot{position:absolute;top:57px;left:0;right:0;text-align:center;font-size:70px;color:#d8bbef}
+.dream-speech{position:absolute;left:22px;right:22px;bottom:29px;z-index:2;background:#1b1238d9;border:1px solid #b28cc0a0;border-radius:18px;padding:9px 14px;color:#f6eaff;font-size:13px;text-align:center;box-shadow:0 6px 15px #10091b66;backdrop-filter:blur(8px)}
+.dream-skyline{position:absolute;bottom:-26px;left:0;right:0;text-align:center;color:#e2c9f3b0;font-size:59px;letter-spacing:35px;pointer-events:none}
+.dream-skyline span{font-size:20px}
+.dream-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:11px}
+.dream-chip{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,#423052,#2b203e);border:1px solid #a17db058;border-radius:19px;min-height:93px;padding:7px 4px;box-shadow:inset 0 1px #ffffff1a}
+.dream-chip>span{font-size:15px;color:#d3adf2;line-height:17px}
+.dream-chip b{font-size:23px;line-height:28px;color:#f5ddff;white-space:nowrap}
+.dream-chip small{font-size:10px;text-align:center;color:#ceb6db;line-height:12px}
+.card.hero.dream-cycle{background:linear-gradient(140deg,#332047,#231832);padding:17px 18px 13px}
+.dream-cycle-caption{font-size:11px;letter-spacing:2px;font-weight:800;color:#d2a6e9;margin-bottom:6px}
+.hero .hk{font-size:12px;text-transform:none;color:#bfadd1}
+.hero .hb{font-size:31px;background:linear-gradient(120deg,#facaf2,#bba0f8);background-clip:text;-webkit-background-clip:text}
+.hero .hbtn{margin-top:9px}
+.hero .cyc{top:20px}
+.hero .linkbtn{margin-top:8px}
+.btn.main{background:linear-gradient(115deg,#bd88d6,#8668cd);box-shadow:0 5px 17px #81549c45}
+.today-extra{background:#271a39b8}
+nav.tabs{background:#130c20fa;border-top:1px solid #906baf65}
+nav.tabs button{padding:8px 0 6px;gap:3px;letter-spacing:.2px}
+nav.tabs button .e{height:25px;display:grid;place-items:center}
+nav.tabs button svg{width:23px;height:23px}
+nav.tabs button.on{color:#f0ccff}
+nav.tabs button.on .e{filter:drop-shadow(0 0 8px #d9a6f9)!important}
+#calcard{background:radial-gradient(ellipse at 50% 0%,#7a549447,transparent 70%),linear-gradient(160deg,#372447,#231a33)}
+#calcard .d{border-radius:12px!important}
+#calcard .cal-head b{color:#f2d9ff}
+.dream-settings-head{display:flex;gap:15px;align-items:center;justify-content:space-between;background:linear-gradient(130deg,#55386e,#2d1f40);border:1px solid #b08ac066;border-radius:23px;padding:14px 22px;margin:4px 0 18px;text-align:center}
+.dream-settings-head>span{font-size:32px;color:#e1bdf7}
+.dream-settings-head small{font-size:10px;letter-spacing:2px;color:#d5b2f1}
+.dream-settings-head h2{margin:2px 0;font-size:23px}
+.dream-petgrid{gap:9px}
+.dream-petgrid .ptile{background:linear-gradient(160deg,#493257,#271b3c)!important}
+.dream-petgrid .ptile.on{background:linear-gradient(160deg,#79569b,#49325c)!important}
+@media(max-width:365px){.dream-scene{height:220px}.dream-mascot{top:32px}.dream-speech{bottom:25px}.dream-chip b{font-size:19px}.dream-chip small{font-size:9px}}
+@media(max-height:740px){.dream-scene{height:205px}.dream-mascot{top:23px;width:110px;height:110px}.dream-mascot svg{width:108px;height:108px}.dream-speech{bottom:19px}.dream-chip{min-height:72px}.dream-chip b{font-size:20px}.card.hero.dream-cycle{padding:13px}}
 </style>
 </head>
 <body>
 <div class="wrap" id="app"></div>
 <nav class="tabs"><div class="in">
-  <button data-tab="today" class="on"><span class="e">☾</span>Сегодня</button>
-  <button data-tab="cal"><span class="e">▦</span>Календарь</button>
-  <button data-tab="stats"><span class="e">▥</span>Анализ</button>
+  <button data-tab="today" class="on"><span class="e"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 15.4A8.5 8.5 0 0 1 8.6 4a8.8 8.8 0 1 0 11.4 11.4Z"/><path d="M16 3v4m-2-2h4"/></svg></span>Сегодня</button>
+  <button data-tab="cal"><span class="e"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 10h18"/><path d="M8 14h2m4 0h2m-8 4h2"/></svg></span>Календарь</button>
+  <button data-tab="stats"><span class="e"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V12m5 8V7m5 13V10m5 10V4"/><path d="M2 20h20"/></svg></span>Анализ</button>
 </div></nav>
 
 <script>
@@ -416,10 +473,35 @@ function curPeriod(t){
   if(e.end===add(t,-1)&&diff(e.start,t)<C().dur+4)return{e,today:false,day:diff(e.start,t)+1};
   return null;
 }
+
+function dreamScene(t){
+ const pi=S.mode==='pill'?packInfo(t):null;
+ const ps=S.pet&&PETS[S.pet]?petSay(t):null;
+ const period=curPeriod(t), cd=cycleDay(t);
+ return `<section class="dream-scene" aria-label="Лавандовые сны">
+   <div class="dream-stars" aria-hidden="true">✦ <span>✧</span> ✨</div>
+   <div class="dream-moon" aria-hidden="true">☾</div>
+   <div class="dream-cloud cloud-one"></div><div class="dream-cloud cloud-two"></div><div class="dream-cloud cloud-three"></div>
+   <div class="dream-kicker">✧ Мой лунный дневник ✧</div>
+   ${ps?`<button class="dream-mascot" id="petb" aria-label="Погладить питомца ${PETS[S.pet].n}">${petSVG(S.pet,ps.m)}</button>`:`<div class="dream-empty-mascot">☾</div>`}
+   <div class="dream-speech" id="petbub">${ps?esc(ps.s):'Хорошего лунного дня ✨'}</div>
+   <div class="dream-skyline">☁ <span>✧</span> ☁</div>
+ </section>`;
+}
+function dreamOverview(t){
+ const cp=curPeriod(t),ns=nextBleedStart(t),cd=cycleDay(t);
+ const pi=S.mode==='pill'?packInfo(t):null;
+ return `<div class="dream-summary">
+   <div class="dream-chip"><span>☾</span><b>${cd||'—'}</b><small>день цикла</small></div>
+   <div class="dream-chip"><span>✿</span><b>${cp&&cp.today?cp.day:ns?Math.max(0,diff(t,ns)):'—'}</b><small>${cp&&cp.today?'день месячных':'дней до месячных'}</small></div>
+   <div class="dream-chip"><span>✦</span><b>${pi?pi.day+'/'+pi.len:'♡'}</b><small>${pi?'таблетка':'забота о себе'}</small></div>
+ </div>`;
+}
+
 function hero(t){
   const cp=curPeriod(t),D=(n)=>n+' '+plural(n,'день','дня','дней');
   const cdn=cycleDay(t);
-  let h=`<div class="card hero">${cdn?`<div class="cyc">день цикла <b>${cdn}</b></div>`:''}<div class="hk">Месячные</div>`;
+  let h=`<div class="card hero dream-cycle"><div class="dream-cycle-caption">✦ МОЙ ЦИКЛ</div>${cdn?`<div class="cyc">день цикла <b>${cdn}</b></div>`:''}<div class="hk">Месячные</div>`;
   if(cp&&cp.today){
     const left=C().dur-cp.day;
     h+=`<div class="hb">${cp.day}-й день</div><div class="hs">${cp.closed?'отмечено, что сегодня последний день':left>0?'по плану ещё ~'+D(left):'по плану уже должны заканчиваться'}</div>`;
@@ -481,7 +563,7 @@ function todayView(){
   // The dashboard starts with the cycle overview; alerts remain visible below.
   if(S.mode==='pill'){
     const pi=packInfo(t);
-    if(!pi)return hero(t)+`<div class="card"><p>Пачка ещё не начата.</p><button class="btn main" id="newpack">Начала пачку сегодня</button></div>`;
+    if(!pi)return dreamScene(t)+dreamOverview(t)+hero(t)+`<div class="card"><p>Пачка ещё не начата.</p><button class="btn main" id="newpack">Начала пачку сегодня</button></div>`;
     const miss=missedActive();
     const riskLine=(k)=>{const q=packInfo(k);if(!q||!q.active)return '';const sx=[];for(let i=1;i<=7;i++){const x=add(k,-i);if((S.days[x]||{}).sx)sx.push(x)}
       if(q.day<=7&&sx.length)return `<div style="margin-top:6px;font-weight:600">⚠️ Пропуск на 1-й неделе пачки, а за 7 дней до него была близость без защиты (${sx.map(fmtShort).join(', ')}). По правилам КОК есть риск - лучше написать гинекологу.</div>`;
@@ -497,7 +579,7 @@ function todayView(){
       const nxt=P().type==='placebo'?'плацебо':'перерыв';
       h+=`<div class="alert info"><b>${pi.day===P().active?'Сегодня':'Завтра'} последняя активная таблетка</b>Потом ${nxt} и месячные. Делаем перерыв или отменяем месячные?<div class="row"><button class="btn small" data-brk="${pi.start}">Делаю перерыв</button><button class="btn small" data-skip="${pi.start}">🚫 Отменить месячные</button></div></div>`;
     }
-    h+=apkNote()+hero(t)+petCard(t)+softAlerts(t);
+    h+=apkNote()+dreamScene(t)+dreamOverview(t)+hero(t)+softAlerts(t);
     const tk=S.taken[t];let btn;
     const phase=pi.active?'активная':P().type==='placebo'?'плацебо (пустышка)':'перерыв';
     if(!pi.active&&P().type==='break')btn=`<div class="mut sm" style="text-align:center">Сегодня таблетку не пьём. Новая пачка - ${fmtW(add(pi.end,1))}</div>`;
@@ -900,7 +982,7 @@ function cycBlock(mode,c){
 }
 function openSettings(){
   const p=P();const pi=packInfo(today());const c=Object.assign({},C());
-  const html=`<h2>Настройки</h2>
+  const html=`<div class="dream-settings-head"><span>☾</span><div><small>ЛАВАНДОВЫЕ СНЫ</small><h2>Настройки</h2></div><span>✦</span></div>
   <div class="seg" id="mode"><button data-m="pill" class="${S.mode==='pill'?'on':''}">Пью КОК</button><button data-m="natural" class="${S.mode==='natural'?'on':''}">Без таблеток</button></div>
   ${cycBlock(S.mode,c)}
   <div id="pillset" class="${S.mode==='pill'?'':'hide'}">
@@ -915,7 +997,7 @@ function openSettings(){
   </div>
   <h4>Синхронизация</h4><div id="ydbox">${ydBox()}</div>
   ${notifBox()}
-  <h4>Питомец</h4><div class="petgrid" id="petpick"></div>
+  <h4>☁ Лунные друзья</h4><div class="mut sm">Выбери своего хранителя снов. Нажми на него на главной, чтобы погладить ✨</div><div class="petgrid dream-petgrid" id="petpick"></div>
   <h4>Мой список самочувствия</h4>
   <div class="chips" id="syl"></div>
   <div class="row" style="margin-top:8px;flex-wrap:nowrap"><input id="sya" placeholder="добавить, например: спина"><button class="btn small" id="syb">+</button></div>
