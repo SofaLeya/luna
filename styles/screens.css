@@ -428,3 +428,8 @@ button[hidden],.notes-list [hidden] { display:none; }
 .pixel-pets-promo span{font-weight:700;color:#f0d2fc;font-size:13px}
 .pixel-pets-promo button{display:flex;align-items:center;gap:3px;color:#ffe1f9;text-decoration:underline;font-size:12px}
 .pixel-pets-promo .icon{width:15px;height:15px}
+
+.period-pick-hint{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0;padding:12px 14px;border:1px solid #d48bbd;border-radius:16px;background:linear-gradient(115deg,#5b315c,#34234e);color:#fff}
+.period-pick-hint b{width:100%;font-size:15px}
+.period-pick-hint span{flex:1;min-width:170px;font-size:13px;color:#ead2ed}
+.period-pick-hint .btn{flex-shrink:0}

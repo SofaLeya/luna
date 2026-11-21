@@ -115,8 +115,8 @@ let _st=null;
 function cycleDay(k,st){st=st||starts();let s=null;for(const x of st){if(x<=k)s=x;else break}return s?diff(s,k)+1:null}
 function curPeriod(t){
   const eps=episodes();const e=eps[eps.length-1];
-  if(!e||S.ended[e.start])return e&&e.end===t?{e,today:true,day:diff(e.start,t)+1,closed:true}:null;
-  if(e.end===t)return{e,today:true,day:diff(e.start,t)+1};
+  if(!e||S.ended[e.start])return e&&e.start<=t&&e.end>=t?{e,today:true,day:diff(e.start,t)+1,closed:true}:null;
+  if(e.start<=t&&e.end>=t)return{e,today:true,day:diff(e.start,t)+1};
   if(e.end===add(t,-1)&&diff(e.start,t)<C().dur+4)return{e,today:false,day:diff(e.start,t)+1};
   return null;
 }
@@ -129,7 +129,7 @@ function hero(t){
     const next=nextBleedStart(t);
     const left=C().dur-cp.day;
     h+=`<div class="hb">${cp.day}-й день</div><div class="hs">${cp.closed?'Сегодня последний день':next&&next>t?shortDate(next)+' · след. менст.':left>0?'по плану ещё ~'+D(left):'по плану уже должны заканчиваться'}</div>`;
-    h+=cp.closed?`<div class="row hbtn"><button class="btn" data-reopen>Нет, ещё идут</button></div>`:`<div class="row hbtn"><button class="btn main" data-end>Конец месячных</button></div>`;
+    h+=cp.closed?`<div class="row hbtn"><button class="btn" data-reopen>Нет, ещё идут</button></div>`:`<div class="row hbtn"><button class="btn main" data-end>Завершить месячные</button></div>`;
     h+=`<button class="linkbtn" data-cancel>Убрать отметки месячных</button>`;
   }else if(cp){
     h+=`<div class="hb">${cp.day}-й день?</div><div class="hs">Вчера были. Сегодня ещё идут?</div><div class="row hbtn"><button class="btn main sm2" data-cont>Да, идут</button><button class="btn" data-end>Нет, закончились</button></div><button class="linkbtn" data-cancel>Убрать отметки месячных</button>`;
@@ -142,7 +142,7 @@ function hero(t){
     else if(ns){const d=diff(t,ns);const pi=S.mode==='pill'?packInfo(t):null;h+=`<div class="hb">через ${D(d)}</div><div class="hs">~ ${fmtW(ns)}${pi&&pi.skipped?' · в этой пачке отменены':''}</div>`}
     else if(S.mode==='pill'&&P().inactive<1)h+=`<div class="hb">не ожидаются</div><div class="hs">пьёшь без перерыва</div>`;
     else h+=`<div class="hb">Нет прогноза</div><div class="hs">Отметьте начало, когда начнутся месячные</div>`;
-    h+=`<div class="row hbtn"><button class="btn main sm2" data-start>Начались сегодня</button></div>`;
+    h+=`<div class="row hbtn"><button class="btn main sm2" data-start>Начало месячных</button></div>`;
   }
   return h+'</div>';
 }
@@ -402,6 +402,53 @@ function openPlan(){
 function spark(v){const mn=Math.min(...v),mx=Math.max(...v),r=mx-mn||1,W=300,H=50;const pts=v.map((x,i)=>`${(i/(v.length-1)*W).toFixed(1)},${(H-4-(x-mn)/r*(H-8)).toFixed(1)}`).join(' ');return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:50px;margin-top:10px"><polyline points="${pts}" fill="none" stroke="#ff6fa8" stroke-width="2.5" stroke-linejoin="round"/></svg>`}
 
 /* ---------- обработчики ---------- */
+
+/* Period selection is a calendar-first flow. Auto-filled days remain individually editable. */
+let periodPick=null;
+function periodLength(){return Math.max(1,Math.min(15,Number(C().dur)||5))}
+function periodFlow(k){return S.days[k]?.flow||0}
+function periodSet(k,flow){
+  S.days[k]=S.days[k]||{sym:[],note:''};
+  S.days[k].flow=flow;
+  if(!flow&&typeof clean==='function')clean(k);
+}
+function periodStartAt(start){
+  if(start>today()){toast('Начало месячных можно отметить только за сегодня или раньше');return false}
+  S.autoPeriodDays=S.autoPeriodDays||{};
+  const count=periodLength();
+  for(let i=0;i<count;i++){
+    const k=add(start,i);
+    if(periodFlow(k))continue; // never overwrite a manual intensity
+    periodSet(k,i===0?3:2);
+    S.autoPeriodDays[k]=start;
+  }
+  delete S.ended[start];
+  save();
+  toast('Отмечено '+count+' '+plural(count,'день','дня','дней')+' с '+fmt(start));
+  return true;
+}
+function periodEndAt(end){
+  const ep=episodes().filter(e=>e.start<=end&&e.end>=end).pop()
+    ||episodes().filter(e=>e.start<=end).pop();
+  if(!ep){toast('Сначала отметьте начало месячных');return false}
+  S.autoPeriodDays=S.autoPeriodDays||{};
+  for(const [k,owner] of Object.entries(S.autoPeriodDays)){
+    if(owner===ep.start&&k>end){periodSet(k,0);delete S.autoPeriodDays[k]}
+  }
+  S.ended[ep.start]=true;
+  save();
+  toast('Последний день: '+fmt(end));
+  return true;
+}
+function periodCalendarMode(mode){
+  periodPick=mode;
+  calSel=null;
+  calFocus=today();
+  calM=calFocus.slice(0,7);
+  changeTab('cal');
+  if(tab==='cal')render();
+}
+
 function bindView(){
   const actions = {
     'metric-calendar':()=>changeTab('cal'),
@@ -414,9 +461,9 @@ function bindView(){
   document.querySelectorAll('[data-unmark]').forEach(b=>b.onclick=()=>{const k=b.dataset.unmark,old=S.taken[k];delete S.taken[k];save();render();toast('Отметка снята',()=>{S.taken[k]=old;save();render()})});
   document.querySelectorAll('[data-help]').forEach(b=>b.onclick=()=>openHelp(b.dataset.help));
   document.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>openDay(b.dataset.day));
-  document.querySelectorAll('[data-start]').forEach(b=>b.onclick=()=>{const t=today();S.days[t]=S.days[t]||{};S.days[t].flow=Math.max(S.days[t].flow||0,3);save();render();toast('Отмечено: месячные начались')});
+  document.querySelectorAll('[data-start]').forEach(b=>b.onclick=()=>periodCalendarMode('start'));
   document.querySelectorAll('[data-cont]').forEach(b=>b.onclick=()=>{const t=today(),y=S.days[add(t,-1)];S.days[t]=S.days[t]||{};S.days[t].flow=y&&y.flow?y.flow:2;save();render()});
-  document.querySelectorAll('[data-end]').forEach(b=>b.onclick=()=>{const cp=curPeriod(today());if(cp){S.ended[cp.e.start]=true;save();render();toast('Отмечено, что закончились',()=>{delete S.ended[cp.e.start];save();render()})}});
+  document.querySelectorAll('[data-end]').forEach(b=>b.onclick=()=>periodCalendarMode('end'));
   document.querySelectorAll('[data-reopen]').forEach(b=>b.onclick=()=>{const cp=curPeriod(today());if(cp){delete S.ended[cp.e.start];save();render()}});
   document.querySelectorAll('[data-cancel]').forEach(b=>{let arm=false;b.onclick=()=>{
     const cp=curPeriod(today());if(!cp)return;
@@ -1062,7 +1109,7 @@ setInterval(refreshDailyView,60000);
 const ACT=(()=>{const a=new URLSearchParams(location.search).get('a');if(a){try{history.replaceState(null,'',location.pathname)}catch(e){}}return a})();
 function runAct(){if(!ACT||!S.setup)return;const t=today();
   if(ACT==='pill'){const pi=packInfo(t);if(!pi){toast('Пачка не начата');return}if(!pi.active&&P().type==='break'){toast('Сегодня перерыв, таблетку не пьём');return}if(S.taken[t]){toast('Сегодня уже отмечено ✓');return}S.taken[t]={at:new Date().toISOString()};save();render();toast('Отмечено: выпила 💊')}
-  if(ACT==='start'){S.days[t]=S.days[t]||{sym:[],note:''};S.days[t].flow=Math.max(S.days[t].flow||0,3);save();render();toast('Отмечено: месячные начались')}}
+  if(ACT==='start')periodCalendarMode('start')}
 render();
 if(YD.justIn){YD.justIn=false;toast('Яндекс Диск подключён');}
 ydSync();setInterval(()=>ydSync(),5*60000);

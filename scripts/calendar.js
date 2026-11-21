@@ -78,6 +78,7 @@ function calView() {
     </div>
     <div class="calendar-actions"><button class="btn small" id="calendar-today" aria-label="Перейти к сегодняшней дате">Сегодня</button>
       <button class="btn small" id="calendar-tools" aria-controls="period-actions" aria-expanded="${calSel?.mode==='menu'}">${icon('drop')} Месячные</button></div>`;
+  if(periodPick)html+=`<div class="period-pick-hint" role="status"><b>${periodPick==='start'?'Выберите первый день месячных':'Выберите последний день месячных'}</b><span>${periodPick==='start'?'Автоматически отметим '+periodLength()+' '+plural(periodLength(),'день','дня','дней'):'Автоматические отметки после выбранной даты будут убраны'}</span><button class="btn small" id="period-pick-cancel">Отмена</button></div>`;
   if(calSel?.mode==='menu'){
     html+=`<div class="calendar-commands row" id="period-actions">
       <button class="btn small" data-rng="add">Отметить период</button>
@@ -142,6 +143,7 @@ function openMonthPicker() {
 
 function bindCalendar() {
   const move=(offset,button)=>{calM=shiftMonth(calM,offset);renderCalendar(button)};
+  const pickCancel=$('#period-pick-cancel');if(pickCancel)pickCancel.onclick=()=>{periodPick=null;renderCalendar()};
   $('#pm').onclick=()=>move(-1,'#pm');
   $('#nm').onclick=()=>move(1,'#nm');
   $('#calendar-month').onclick=openMonthPicker;
@@ -185,7 +187,18 @@ function bindCalendar() {
       if(performance.now()-lastSwipe<400)return;
       const day=button.dataset.calDay;
       if(calSel&&calSel.mode!=='menu'){rangeTap(day);return}
+      if(periodPick){
+        const mode=periodPick;
+        if(mode==='start'&&!periodStartAt(day))return;
+        if(mode==='end'&&!periodEndAt(day))return;
+        periodPick=null;
+        calFocus=day;calM=day.slice(0,7);calSel=null;
+        renderCalendar(`[data-cal-day="${day}"]`);
+        return;
+      }
       calFocus=day;calM=day.slice(0,7);calSel=null;
+      // A single tap toggles bleeding, while preserving all other day records.
+      if(day<=today()||periodFlow(day)){toggleCalendarPeriod(day);return}
       renderCalendar(`[data-cal-day="${day}"]`);
       const editButton=$('#calendar-edit');
       if(editButton && editButton.getBoundingClientRect().bottom>$('nav.tabs').getBoundingClientRect().top){
@@ -201,8 +214,9 @@ function bindCalendar() {
   });
 }
 function toggleCalendarPeriod(k){
-  if(k>today()){toast('Будущие дни пока нельзя отмечать');return}
+  if(k>today()&&!periodFlow(k)){toast('Будущие дни можно отметить через начало месячных');return}
   const previous=S.days[k]?S.days[k].flow||0:0;
+  if(S.autoPeriodDays)delete S.autoPeriodDays[k];
   S.days[k]=S.days[k]||{sym:[],note:''};
   S.days[k].flow=previous?0:2;
   clean(k);save();render();
