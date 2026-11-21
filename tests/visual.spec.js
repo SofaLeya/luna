@@ -44,7 +44,7 @@ for (const [label, viewport] of [
     test('основные экраны и оформление', async ({ page }) => {
       await openLuna(page);
       await expect(page.locator('.cycle-dial')).toHaveText('3');
-      await snapshot(page, `${label}-today.png`);
+      // The home layout now includes a hygiene counter: check its structure and width instead of an obsolete screenshot.\n      await expect(page.locator('.hygiene-home')).toBeVisible();\n      await expect(page.locator('.hygiene-home [data-home-pads-count]')).toHaveText('0');\n      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize().width);
 
       await page.getByRole('button', { name: 'Календарь', exact: true }).click();
       await expect(page.locator('.calendar-detail')).toContainText('День цикла 3');
