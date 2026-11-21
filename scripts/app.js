@@ -429,7 +429,7 @@ function bindView(){
   document.querySelectorAll('[data-skip]').forEach(b=>armed(b,()=>{P().skip=P().skip||{};P().skip[b.dataset.skip]=true;save();render();toast('Месячные в этой пачке отменены',()=>{delete P().skip[b.dataset.skip];save();render()})}));
   document.querySelectorAll('[data-unskip]').forEach(b=>b.onclick=()=>{delete P().skip[b.dataset.unskip];save();render();toast('Перерыв вернулся')});
   document.querySelectorAll('[data-skipnow]').forEach(b=>armed(b,()=>{const t=today(),old=[...P().packs],st=P().stock;startPack(t);toast('Новая пачка с сегодня',()=>{P().packs=old;P().stock=st;save();render()})}));
-  const pb=$('#petb');if(pb)pb.onclick=petTap;apkBind();
+  const pb=$('#petb');if(pb)pb.onclick=()=>openDesign('pets');apkBind();
   document.querySelectorAll('[data-brk]').forEach(b=>b.onclick=()=>{S.brk=S.brk||{};S.brk[b.dataset.brk]=true;save();render();toast('Хорошо, перерыв как обычно')});
   document.querySelectorAll('[data-dism]').forEach(b=>b.onclick=()=>{S.dism=S.dism||{};S.dism[b.dataset.dism]=1;save();render()});
   document.querySelectorAll('[data-vadd]').forEach(b=>b.onclick=openVisit);
