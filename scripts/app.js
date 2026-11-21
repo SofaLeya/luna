@@ -115,8 +115,8 @@ let _st=null;
 function cycleDay(k,st){st=st||starts();let s=null;for(const x of st){if(x<=k)s=x;else break}return s?diff(s,k)+1:null}
 function curPeriod(t){
   const eps=episodes();const e=eps[eps.length-1];
-  if(!e||S.ended[e.start])return e&&e.end===t?{e,today:true,day:diff(e.start,t)+1,closed:true}:null;
-  if(e.end===t)return{e,today:true,day:diff(e.start,t)+1};
+  if(!e||S.ended[e.start])return e&&e.start<=t&&e.end>=t?{e,today:true,day:diff(e.start,t)+1,closed:true}:null;
+  if(e.start<=t&&e.end>=t)return{e,today:true,day:diff(e.start,t)+1};
   if(e.end===add(t,-1)&&diff(e.start,t)<C().dur+4)return{e,today:false,day:diff(e.start,t)+1};
   return null;
 }
