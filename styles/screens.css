@@ -433,3 +433,20 @@ button[hidden],.notes-list [hidden] { display:none; }
 .period-pick-hint b{width:100%;font-size:15px}
 .period-pick-hint span{flex:1;min-width:170px;font-size:13px;color:#ead2ed}
 .period-pick-hint .btn{flex-shrink:0}
+
+/* Compact, Monday-first weeks in the analysis forecast and history. */
+.analysis-week-event{padding:15px 0;border-bottom:1px solid var(--line,rgba(255,255,255,.1));min-width:0}
+.analysis-week-event:last-child{border-bottom:0}
+.analysis-week-event-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;font-size:14px}
+.analysis-week-event-head .mut{font-size:12px}
+.analysis-week-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.analysis-week-day{appearance:none;border:1px solid rgba(255,255,255,.09);border-radius:10px;background:rgba(25,14,43,.4);color:inherit;min-width:0;min-height:57px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:5px 0;cursor:pointer;font:inherit}
+.analysis-week-day .analysis-week-label{font-size:11px;opacity:.7}
+.analysis-week-day strong{font-size:16px;font-weight:650;font-variant-numeric:tabular-nums}
+.analysis-week-day.other-month:not(.is-selected){opacity:.52}
+.analysis-week-period .analysis-week-day.is-selected{background:rgba(206,99,154,.3);border:2px solid #e89ecb;box-shadow:0 0 10px rgba(220,116,172,.2)}
+.analysis-week-pill .analysis-week-day.is-selected{background:rgba(157,116,218,.32);border:2px solid #bda1ee;box-shadow:0 0 10px rgba(157,116,218,.2)}
+.analysis-week-day:focus-visible{outline:2px solid #f3c0e4;outline-offset:2px}
+.analysis-week-month{display:block;margin-top:5px;text-align:right;font-size:11px;opacity:.65}
+.analysis-week-caption{margin-top:8px;font-size:13px;color:var(--muted,#d2bed8)}
+@media(max-width:360px){.analysis-week-days{gap:3px}.analysis-week-day{min-height:50px;border-radius:8px}.analysis-week-day strong{font-size:14px}.analysis-week-day .analysis-week-label{font-size:10px}}
