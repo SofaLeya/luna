@@ -255,6 +255,34 @@ input,select,textarea{background:#1c1530;border-color:#5b4674}
 .alert.info{background:#35274d;border-color:#77569e}
 .btn.done{background:#233b37;border-color:#527f72}
 @media(max-height:760px){.petc{min-height:86px}.petc .pet{width:78px;height:78px}.hero .hb{font-size:27px}.wrap{padding-bottom:6px}}
+
+/* Lavender Dreams mobile-first compact layout */
+.wrap{max-width:520px;padding:10px 14px 18px}
+header{padding:2px 0 8px}
+header h1{font-size:25px}
+header .row{gap:7px}
+.icon-btn{width:39px;height:39px;font-size:18px}
+.card{padding:13px 15px;margin-bottom:10px}
+.card.hero{padding:16px 18px 13px}
+.hero .hk{font-size:12px;letter-spacing:.4px;text-transform:uppercase}
+.hero .hb{font-size:30px;margin:1px 0}
+.hero .hs{font-size:13px}
+.hero .cyc{top:12px;right:14px}
+.hero .hbtn{margin-top:8px}
+.hero .btn{padding:8px 12px;font-size:13px;border-radius:12px}
+.hero .linkbtn{margin-top:8px;font-size:12px}
+.petc{min-height:80px;padding:7px 12px;justify-content:flex-start}
+.petc .pet{width:72px;height:72px}
+.petc .bub{font-size:13px;padding:9px 12px;border-radius:15px}
+.today-extra{padding:10px 14px}
+.today-extra summary{font-size:13px}
+.ring-box{gap:8px}
+.ring-box .ring{width:150px;height:150px}
+.ring-box .pt{font-size:14px}
+nav.tabs .in{max-width:520px}
+nav.tabs button{font-size:11px;gap:1px}
+nav.tabs button .e{font-size:21px}
+@media(max-width:380px){.wrap{padding-left:10px;padding-right:10px}.card{padding:11px}.hero .hb{font-size:26px}.icon-btn{width:36px;height:36px}}
 </style>
 </head>
 <body>
@@ -446,8 +474,11 @@ function ringSVG(pi){
   return `<svg viewBox="0 0 240 240"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#ff6fa8"/><stop offset="1" stop-color="#8e4fd6"/></linearGradient></defs>${s}</svg>`;
 }
 
+// One-time UI migration: preserve all tracking data, switch legacy expanded pill ring to compact card.
+try{if(localStorage.getItem('luna-dreams-compact-v1')!=='1'){S.compact=true;localStorage.setItem('luna-dreams-compact-v1','1');save()}}catch(e){}
 function todayView(){
   const t=today();let h='';
+  // The dashboard starts with the cycle overview; alerts remain visible below.
   if(S.mode==='pill'){
     const pi=packInfo(t);
     if(!pi)return hero(t)+`<div class="card"><p>Пачка ещё не начата.</p><button class="btn main" id="newpack">Начала пачку сегодня</button></div>`;
@@ -466,7 +497,7 @@ function todayView(){
       const nxt=P().type==='placebo'?'плацебо':'перерыв';
       h+=`<div class="alert info"><b>${pi.day===P().active?'Сегодня':'Завтра'} последняя активная таблетка</b>Потом ${nxt} и месячные. Делаем перерыв или отменяем месячные?<div class="row"><button class="btn small" data-brk="${pi.start}">Делаю перерыв</button><button class="btn small" data-skip="${pi.start}">🚫 Отменить месячные</button></div></div>`;
     }
-    h+=apkNote()+petCard(t)+softAlerts(t)+hero(t);
+    h+=apkNote()+hero(t)+petCard(t)+softAlerts(t);
     const tk=S.taken[t];let btn;
     const phase=pi.active?'активная':P().type==='placebo'?'плацебо (пустышка)':'перерыв';
     if(!pi.active&&P().type==='break')btn=`<div class="mut sm" style="text-align:center">Сегодня таблетку не пьём. Новая пачка - ${fmtW(add(pi.end,1))}</div>`;
@@ -478,7 +509,7 @@ function todayView(){
     }else
     h+=`<div class="card ring-box"><div class="pt">💊 ${esc(P().name)} <span class="mut">в ${P().time}</span> <button class="linkbtn" style="display:inline;margin:0 0 0 6px" data-compact>свернуть</button></div><div class="ring">${ringSVG(pi)}<div class="c"><div class="big">${pi.day}</div><div class="of">таблетка из ${pi.len}</div><div class="ph">${phase}</div></div></div>${btn}
     ${skipBtn(pi,t)}<div class="minis"><div><span>последняя активная</span><b>${fmtShort(add(pi.start,P().active-1))}</b></div><div><span>новая пачка</span><b>${fmtShort(add(pi.end,1))}</b></div>${P().stock!==null?`<div><span>в запасе</span><b>${P().stock}</b></div>`:''}</div></div>`;
-  }else h+=apkNote()+petCard(t)+softAlerts(t)+hero(t);
+  }else h+=apkNote()+hero(t)+petCard(t)+softAlerts(t);
   const dd=S.days[t]||{};
   h+=`<details class="card today-extra"><summary>✦ Самочувствие и дополнительные записи ▾</summary><h3>Как сегодня</h3><div class="chips">${FLOW.map((f,i)=>`<button class="chip flow-${i} ${(dd.flow||0)===i?'on':''}" data-flow="${i}">${i?'🩸 ':''}${f}</button>`).join('')}</div>
   <div class="row" style="margin-top:10px"><button class="btn small" data-day="${t}">Самочувствие и заметка${(dd.sym&&dd.sym.length)||dd.note?' ✎':''}</button></div></details>`;
