@@ -1104,6 +1104,19 @@ const PETS={
 function dreamPetSVG(id,mood){
  const p=PETS[id],B=p.b,BL=p.bl;
  const extras={
+ kitty:'<path d="M27 51 L29 15 Q30 10 36 15 L52 37 M93 51 L91 15 Q90 10 84 15 L68 37" fill="#f3b4cb" stroke="#e69aa2" stroke-width="3"/><path d="M37 32 L40 21 L50 38 M83 32 L80 21 L70 38" fill="#f8dce2"/><path d="M91 102 Q114 90 103 68" stroke="#e9b16b" stroke-width="10" fill="none" stroke-linecap="round"/>',
+ bunny:'<ellipse cx="39" cy="18" rx="11" ry="30" fill="#f9f1fc" transform="rotate(-12 39 18)"/><ellipse cx="81" cy="18" rx="11" ry="30" fill="#f9f1fc" transform="rotate(12 81 18)"/><ellipse cx="39" cy="17" rx="5" ry="20" fill="#f8c6d9" transform="rotate(-12 39 17)"/><ellipse cx="81" cy="17" rx="5" ry="20" fill="#f8c6d9" transform="rotate(12 81 17)"/>',
+ fox:'<path d="M26 51 L27 10 L52 37 M94 51 L93 10 L68 37" fill="#ef934f" stroke="#e47f4c" stroke-width="3"/><path d="M33 34 L33 20 L45 36 M87 34 L87 20 L75 36" fill="#ffd5d9"/><path d="M89 101 Q113 103 109 71 L96 82" fill="#f4ba75" stroke="#f4d7bb" stroke-width="4"/>',
+ panda:'<circle cx="31" cy="36" r="16" fill="#48415e"/><circle cx="89" cy="36" r="16" fill="#48415e"/><path d="M32 59 Q42 44 52 60 Q44 79 32 59 M68 60 Q78 44 88 59 Q76 79 68 60" fill="#73617f"/>',
+ penguin:'<path d="M40 45 L23 81 L43 77 M80 45 L97 81 L77 77" fill="#697993"/><ellipse cx="60" cy="96" rx="24" ry="19" fill="#e9eef9"/>',
+ koala:'<circle cx="28" cy="42" r="21" fill="#aeb8c6"/><circle cx="92" cy="42" r="21" fill="#aeb8c6"/><circle cx="28" cy="42" r="12" fill="#efc4d8"/><circle cx="92" cy="42" r="12" fill="#efc4d8"/>',
+ owl:'<path d="M30 52 L28 18 L48 35 M90 52 L92 18 L72 35" fill="#d5ad87"/><path d="M27 89 Q9 65 30 61 M93 89 Q111 65 90 61" fill="#ae805f"/>',
+ llama:'<ellipse cx="37" cy="27" rx="9" ry="23" fill="#f1e1c6" transform="rotate(-12 37 27)"/><ellipse cx="83" cy="27" rx="9" ry="23" fill="#f1e1c6" transform="rotate(12 83 27)"/><circle cx="45" cy="33" r="12" fill="#fbf3e6"/><circle cx="60" cy="28" r="13" fill="#fbf3e6"/><circle cx="75" cy="33" r="12" fill="#fbf3e6"/>',
+ hedgehog:'<path d="M20 70 L13 52 L29 53 L26 31 L43 42 L45 18 L61 39 L78 20 L78 44 L96 34 L92 55 L110 53 L99 73" fill="#99799b"/>',
+ corgi:'<path d="M25 53 L25 8 L52 39 M95 53 L95 8 L68 39" fill="#eaaa6c" stroke="#d89662" stroke-width="2"/><path d="M33 37 L33 22 L46 37 M87 37 L87 22 L74 37" fill="#f6cad2"/>',
+ unicorn:'<path d="M60 40 L55 2 L68 38Z" fill="#f5d78a"/><ellipse cx="34" cy="43" rx="14" ry="17" fill="#c5a4f2" transform="rotate(-28 34 43)"/><ellipse cx="85" cy="42" rx="14" ry="17" fill="#f5b5d7" transform="rotate(28 85 42)"/><path d="M32 44 L31 25 L48 39 M88 44 L89 25 L72 39" fill="#fef7ff"/>',
+ axolotl:'<path d="M32 49 L13 30 M30 58 L9 54 M32 68 L12 82 M88 49 L107 30 M90 58 L111 54 M88 68 L108 82" stroke="#e78db4" stroke-width="9" stroke-linecap="round"/>',
+ 
  dragon:'<path d="M25 52 L14 30 L36 40 L43 18 L58 39 L79 17 L82 43 L103 31 L93 58" fill="#d9c3f5" stroke="#9e8bc9" stroke-width="2"/><path d="M89 94 Q113 84 101 62" stroke="#a7d7c7" stroke-width="13" fill="none" stroke-linecap="round"/>',
  deer:'<path d="M40 42 Q23 27 27 13 M40 30 L19 23 M80 42 Q97 27 93 13 M80 30 L101 23" stroke="#e9c2a8" stroke-width="6" fill="none" stroke-linecap="round"/>',
  dino:'<path d="M26 55 L19 39 L37 44 L39 23 L55 39 L67 21 L78 42 L96 31 L92 55" fill="#d5b5e8"/>',
@@ -1111,10 +1124,10 @@ function dreamPetSVG(id,mood){
  raccoon:'<path d="M28 51 L28 20 L49 39 M92 51 L92 20 L71 39" fill="#7d8ca5"/><path d="M31 64 Q44 47 57 63 Q43 79 31 64 M63 63 Q77 47 89 64 Q76 79 63 63" fill="#71809e"/>',
  whale:'<path d="M18 78 Q3 60 9 50 Q24 50 33 67 M102 78 Q117 60 111 50 Q96 50 87 67" fill="#94b4e6"/><path d="M58 37 Q51 22 44 24 M62 37 Q69 22 76 24" stroke="#d6e9ff" stroke-width="5" stroke-linecap="round"/>'
  };
- return `<svg viewBox="0 0 120 128" role="img" aria-label="${p.n}" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="g-${id}" cx="32%" cy="23%" r="75%"><stop stop-color="${BL}"/><stop offset="1" stop-color="${B}"/></radialGradient></defs><ellipse cx="60" cy="117" rx="39" ry="7" fill="#a989d0" opacity=".18"/><ellipse cx="60" cy="90" rx="37" ry="31" fill="${B}"/>${extras[id]}<circle cx="60" cy="66" r="43" fill="url(#g-${id})" stroke="#ffffff55" stroke-width="1.5"/><ellipse cx="40" cy="76" rx="12" ry="7" fill="#f0a8c8" opacity=".75"/><ellipse cx="80" cy="76" rx="12" ry="7" fill="#f0a8c8" opacity=".75"/><ellipse cx="45" cy="63" rx="7" ry="10" fill="#28223e"/><ellipse cx="75" cy="63" rx="7" ry="10" fill="#28223e"/><circle cx="43" cy="59" r="2.7" fill="white"/><circle cx="73" cy="59" r="2.7" fill="white"/><path d="M55 79 Q60 85 65 79" fill="none" stroke="#74516c" stroke-width="2.5" stroke-linecap="round"/><path d="M31 105 Q24 114 36 116 M89 105 Q96 114 84 116" stroke="${B}" stroke-width="9" stroke-linecap="round"/><path d="M15 23 l3 -7 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3z" fill="#e9c9ff" opacity=".85"/></svg>`;
+ return `<svg viewBox="0 0 120 128" role="img" aria-label="${p.n}" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="g-${id}" cx="32%" cy="23%" r="75%"><stop stop-color="${BL}"/><stop offset="1" stop-color="${B}"/></radialGradient></defs><ellipse cx="60" cy="117" rx="39" ry="7" fill="#a989d0" opacity=".18"/><ellipse cx="60" cy="90" rx="37" ry="31" fill="${B}"/>${extras[id]||''}<circle cx="60" cy="66" r="43" fill="url(#g-${id})" stroke="#ffffff55" stroke-width="1.5"/><ellipse cx="40" cy="76" rx="12" ry="7" fill="#f0a8c8" opacity=".75"/><ellipse cx="80" cy="76" rx="12" ry="7" fill="#f0a8c8" opacity=".75"/>${mood==='sleep'||mood==='cozy'?'<path d="M38 63 Q45 71 52 63 M68 63 Q75 71 82 63" fill="none" stroke="#28223e" stroke-width="3" stroke-linecap="round"/>':'<ellipse cx="45" cy="63" rx="7" ry="10" fill="#28223e"/><ellipse cx="75" cy="63" rx="7" ry="10" fill="#28223e"/><circle cx="43" cy="59" r="2.7" fill="white"/><circle cx="73" cy="59" r="2.7" fill="white"/>'}<path d="M55 79 Q60 85 65 79" fill="none" stroke="#74516c" stroke-width="2.5" stroke-linecap="round"/><path d="M31 105 Q24 114 36 116 M89 105 Q96 114 84 116" stroke="${B}" stroke-width="9" stroke-linecap="round"/><path d="M15 23 l3 -7 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3z" fill="#e9c9ff" opacity=".85"/></svg>`;
 }
 function petSVG(id,mood,cls){
-  if(['dragon','deer','dino','capybara','raccoon','whale'].includes(id))return dreamPetSVG(id,mood);
+  if(PETS[id])return dreamPetSVG(id,mood);
   const p=PETS[id];if(!p)return '';
   const B=p.b,BL=p.bl,IN=p.in||'#f5b5c5',LM=p.limb||B,D='#2a2230';
   let back='',ears='',marks='',top='',eyes='',mouth='',arms='',fx='';
