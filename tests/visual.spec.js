@@ -9,20 +9,21 @@ const DAYS = {
   '2025-11-21': { flow: 3, note: 'Тестовая запись' },
 };
 
-async function openLuna(page) {
+async function openLuna(page, mode = 'natural') {
   await page.clock.setFixedTime(NOW);
   await page.route('**/version.txt*', route => route.fulfill({ status: 404 }));
-  await page.addInitScript(days => {
+  await page.addInitScript(({days, mode}) => {
     if (localStorage.getItem('luna-v1')) return;
     localStorage.setItem('luna-v1', JSON.stringify({
-      setup: true, mode: 'natural', since: '2025-10-22', pet: 'unicorn',
-      compact: false, cyc: { dur: 6 }, days, taken: { '2025-10-21': { at: '2025-10-21T21:00:00+03:00' } },
+      setup: true, mode, since: mode==='pill'?'2025-11-21':'2025-10-22', pet: 'unicorn',
+      pill: { packs: ['2025-11-21'], time: '21:00' },
+      compact: mode==='natural'?false:true, cyc: { dur: 6 }, days, taken: { '2025-10-21': { at: '2025-10-21T21:00:00+03:00' } },
     }));
     window.AndroidApp = {
       setSchedule() {}, setBars() {}, notificationsAllowed: () => true, versionCode: () => 1,
     };
     localStorage.setItem('luna-apkchk', String(Date.now()));
-  }, DAYS);
+  }, {days:DAYS, mode});
   await page.goto('/index.html');
 }
 
@@ -33,14 +34,14 @@ async function snapshot(page, name) {
 }
 
 for (const [label, viewport] of [
-  ['android', { width: 390, height: 600 }],
+  ['android', { width: 393, height: 700 }],
   ['android-narrow', { width: 320, height: 640 }],
 ]) {
   test.describe(label, () => {
     const { defaultBrowserType, ...pixel } = devices['Pixel 7'];
     test.use({ ...pixel, viewport, deviceScaleFactor: 1, reducedMotion: 'reduce' });
 
-    test('четыре экрана по референсу', async ({ page }) => {
+    test('основные экраны и оформление', async ({ page }) => {
       await openLuna(page);
       await expect(page.locator('.cycle-dial')).toHaveText('3');
       await snapshot(page, `${label}-today.png`);
@@ -49,7 +50,10 @@ for (const [label, viewport] of [
       await expect(page.locator('.calendar-detail')).toContainText('День цикла 3');
       await snapshot(page, `${label}-calendar.png`);
 
+      await page.getByRole('button', { name: 'Анализ', exact: true }).click();
+      await snapshot(page, `${label}-analysis.png`);
       await page.getByRole('button', { name: 'Уход', exact: true }).click();
+      await snapshot(page, `${label}-care.png`);
       await page.getByRole('button', { name: 'Питомец', exact: true }).click();
       await expect(page.getByRole('button', { name: 'Единорог', exact: true })).toHaveAttribute('aria-pressed', 'true');
       await snapshot(page, `${label}-pets.png`);
@@ -58,6 +62,15 @@ for (const [label, viewport] of [
       await page.getByRole('button', { name: 'Оформление', exact: true }).click();
       await expect(page.getByRole('button', { name: 'Лавандовые облака', exact: true })).toHaveAttribute('aria-pressed', 'true');
       await snapshot(page, `${label}-appearance.png`);
+    });
+
+    test('главная с КОК и редактор записи', async ({ page }) => {
+      await openLuna(page,'pill');
+      await expect(page.locator('.pill-today')).toContainText('Активная');
+      await snapshot(page, `${label}-pill.png`);
+      await page.getByRole('button', { name: 'Запись за сегодня' }).click();
+      await expect(page.getByRole('dialog', { name: /Запись · 21 ноября/ })).toBeVisible();
+      await snapshot(page, `${label}-editor.png`);
     });
   });
 }

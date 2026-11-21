@@ -27,7 +27,7 @@ async function openSettings(page) { await page.click('#set'); await expect(page.
 
 test('открывается без ошибок, первый запуск', async ({ page }) => {
   const errs = await setup(page, { day: 1 });
-  await expect(page.locator('[data-compact]')).toContainText('таблетка 1 из');
+  await expect(page.locator('.pill-today')).toContainText('Таблетка 1 из');
   await expect(page.locator('.hero .hb')).toContainText('через');
   await expect(page.locator('#petb')).toBeVisible();
   expect(errs).toEqual([]);
@@ -59,7 +59,7 @@ test('пропуск таблетки на 1-й неделе + близость 
 test('отменить месячные: пачка без плацебо, прогноз сдвигается и возвращается', async ({ page }) => {
   await setup(page, { day: 5 });
   const before = await ev(page, 'nextBleedStart(today())');
-  await page.click('[data-compact]');
+  await page.click('[data-disclosure=pill-details] summary');
   await page.click('[data-skip]'); await page.click('[data-skip]');
   await expect(page.locator('.skipnote')).toBeVisible();
   const after = await ev(page, 'nextBleedStart(today())');
@@ -71,7 +71,7 @@ test('отменить месячные: пачка без плацебо, пр�
 
 test('на плацебо: отменить месячные = новая пачка сегодня', async ({ page }) => {
   await setup(page, { day: 24 });
-  await page.click('[data-compact]');
+  await page.click('[data-disclosure=pill-details] summary');
   await page.click('[data-skipnow]'); await page.click('[data-skipnow]');
   expect(await ev(page, 'packInfo(today()).day')).toBe(1);
   await expect(page.locator('.ring .big')).toHaveText('1');
@@ -95,23 +95,23 @@ test('календарь: отметить и стереть диапазон, �
   await page.click('[data-tab=cal]');
   await page.click('#calendar-tools');
   await page.click('[data-rng=add]');
-  await page.click('[data-day="2026-11-03"]'); await page.click('[data-day="2026-11-07"]');
+  await page.click('[data-cal-day="2026-11-03"]'); await page.click('[data-cal-day="2026-11-07"]');
   expect(await ev(page, `['2026-11-03','2026-11-07','2026-11-08'].map(k=>(S.days[k]||{}).flow||0)`)).toEqual([3, 2, 0]);
   await page.click('#calendar-tools');
   await page.click('[data-rng=del]');
-  await page.click('[data-day="2026-11-04"]'); await page.click('[data-day="2026-11-05"]');
+  await page.click('[data-cal-day="2026-11-04"]'); await page.click('[data-cal-day="2026-11-05"]');
   expect(await ev(page, `['2026-11-03','2026-11-04','2026-11-06'].map(k=>(S.days[k]||{}).flow||0)`)).toEqual([3, 0, 2]);
   await ev(page, `(()=>{const c=document.getElementById('calcard');const t=x=>new Touch({identifier:1,target:c,clientX:x,clientY:300});c.dispatchEvent(new TouchEvent('touchstart',{touches:[t(300)],changedTouches:[t(300)]}));c.dispatchEvent(new TouchEvent('touchend',{touches:[],changedTouches:[t(100)]}))})()`);
   await expect(page.locator('.cal-head b')).toHaveText('декабрь 2026');
 });
 
-test('важные даты: месячные попадают, кнопка их отменяет', async ({ page }) => {
+test('важные даты: прогноз пересекается с планом и пересчитывается после отмены', async ({ page }) => {
   await setup(page, { day: 1 });
   await ev(page, `S.plans=[{name:'Отпуск',from:'2026-12-11',to:'2026-12-15'}];save()`);
-  await page.click('[data-tab=stats]');
-  await expect(page.locator('.plan-it')).toContainText('попадают месячные');
+  await page.click('[data-tab=care]');
+  await expect(page.locator('.plan-it')).toContainText('Возможное пересечение с месячными');
   await page.click('[data-plan-fix="0"]'); await page.click('[data-plan-fix="0"]');
-  await expect(page.locator('.plan-it')).toContainText('не попадают');
+  await expect(page.locator('.plan-it')).toContainText('По прогнозу пересечения нет');
 });
 
 test('перенос из "Мой календарь"', async ({ page }) => {
@@ -173,8 +173,9 @@ test('окно дня: средства, обезболивающее, свой 
   await page.fill('#sya', 'Спина'); await page.click('#syb');
   await page.locator('.sheet-bg').click({ position: { x: 5, y: 5 } });
   await page.click('[data-tab=cal]');
-  await page.click('[data-day="2026-11-18"]');
+  await page.click('[data-cal-day="2026-11-18"]');
   await page.click('#calendar-edit');
+  await page.click('[data-disclosure=day-extra] summary');
   await page.click('[data-pd="1"]'); await page.click('[data-pd="1"]');
   await page.fill('#mdn', 'Нурофен'); await page.click('#mda');
   await page.click('[data-s="Спина"]');
