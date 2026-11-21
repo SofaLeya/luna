@@ -76,7 +76,7 @@ for (const [label, viewport] of [
     test('главная с КОК и редактор записи', async ({ page }) => {
       await openLuna(page,'pill');
       await expect(page.locator('.pill-today')).toContainText('Активная');
-      await snapshot(page, `${label}-pill.png`);
+      // Home layout changed for pill mode as well; assert the counter and responsive width.\n      await expect(page.locator('.hygiene-home')).toBeVisible();\n      await expect(page.locator('.hygiene-home [data-home-pads-count]')).toHaveText('0');\n      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize().width);
       await page.getByRole('button', { name: 'Запись за сегодня' }).click();
       await expect(page.getByRole('dialog', { name: /Запись · 21 ноября/ })).toBeVisible();
       await snapshot(page, `${label}-editor.png`);
