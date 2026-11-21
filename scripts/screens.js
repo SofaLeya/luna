@@ -17,6 +17,10 @@ const PETS = {
   raccoon: {n: 'Енотик', snd: 'Обнимемся?'},
   whale: {n: 'Китёнок', snd: 'Буль-буль!'},
   axolotl: {n: 'Аксолотль', snd: 'Буль!'},
+  pixel_kitty: {n: 'Пиксельный котик'},
+  pixel_bunny: {n: 'Пиксельная зайка'},
+  pixel_fox: {n: 'Пиксельная лисичка'},
+  pixel_ghost: {n: 'Пиксельный призрак'},
 };
 
 const ICONS = {
@@ -56,7 +60,28 @@ function shortDate(k) {
 function toolButton(id, glyph, label, extra='') {
   return `<button class="icon-btn screen-tool" id="${id}" aria-label="${label}">${icon(glyph)}${extra}</button>`;
 }
+const PIXEL_PETS = {
+  pixel_kitty: {colors:['#e6a36f','#ffdfb0','#603c65','#ef9fc7'],rows:[
+    '................','..AA........AA..','..AAA......AAA..','..ABAA....AAB A.'.replace(' ',''),'..ABAAAAAAAA BA.'.replace(' ',''),'...AAAAAAAAAA...','..AAAAAAAAAAAA..','..AACCAAAACCAA..','..AABCAAAACBAA..','..AAAAADDAAAAA..','..AAAAA CAAAAA..'.replace(' ',''),'...AAAAAAAAAA...','....AAAAAAAA....','....AA....AA....','...AAA....AAA...','................']},
+  pixel_bunny: {colors:['#f5e5fb','#fff8ff','#695276','#f1a9d5'],rows:[
+    '...AA......AA...','...AD......DA...','...AD......DA...','...AD......DA...','...AA......AA...','...AAAAAAAAAA...','..AAAAAAAAAAAA..','..AABBAAAABBAA..','..AACCAAAACCAA..','..AAAAADDAAAAA..','..AAAAACCAAAAA..','...AAAAAAAAAA...','....AAAAAAAA....','....AA....AA....','...AAA....AAA...','................']},
+  pixel_fox: {colors:['#ef9d61','#ffe4c2','#5a3b5d','#ef91b2'],rows:[
+    '..AA........AA..','..AAA......AAA..','..ABAA....AABA..','...AAAAAAAAAA...','..AAAAAAAAAAAA..','..AACCAAAACCAA..','..AABCAAAACBAA..','..AAAAADDAAAAA..','..AABBBCCBBBAA..','...ABBBBBBBBA...','....AAAAAAAA....','....AAAAAAAA....','....AA....AA....','...AAA....AAA...','................','................']},
+  pixel_ghost: {colors:['#d9c7fa','#fff7ff','#5c4b85','#e8a3d6'],rows:[
+    '................','.....AAAAAA.....','...AAAAAAAAAA...','..AAAAAAAAAAAA..','..AABBAAAABBAA..','..AABCAAAACBAA..','..AAAAAAAAAAAA..','..AAAAADDAAAAA..','..AAAAACCAAAAA..','..AAAAAAAAAAAA..','..AAAAAAAAAAAA..','..AAAAAAAAAAAA..','..AAA..AA..AAA..','...AA..AA..AA...','................','................']}
+};
+function pixelPetArt(id) {
+  const pet=PIXEL_PETS[id];
+  if(!pet)return '';
+  const rects=pet.rows.flatMap((row,y)=>Array.from(row).map((c,x)=>{
+    const n='ABCD'.indexOf(c);
+    return n<0?'':`<rect x="${x}" y="${y}" width="1" height="1" fill="${pet.colors[n]}"/>`;
+  })).join('');
+  return `<svg class="pet-art pixel-pet-art" viewBox="0 0 16 16" role="img" aria-label="${PETS[id].n}" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">${rects}</svg>`;
+}
+
 function petImage(id) {
+  if(PIXEL_PETS[id])return pixelPetArt(id);
   return `<img class="pet-art" src="assets/pets/${id}.webp" alt="" width="256" height="256" draggable="false">`;
 }
 
@@ -114,7 +139,7 @@ function dashboard(t,pill='',alerts='') {
   return `<section class="dashboard" aria-label="Записи за сегодня">
     <div class="sky-hero">
       ${hero(t)}
-      ${pet?`<button class="mascot pet${resting?' is-resting':''}" id="petb" aria-label="Погладить питомца ${pet.n}">${petImage(resting?'unicorn-rest':S.pet)}</button>
+      ${pet?`<button class="mascot pet${resting?' is-resting':''}" id="petb" aria-label="Выбрать питомца. Сейчас ${pet.n}">${petImage(resting?'unicorn-rest':S.pet)}</button>
         <div class="mascot-message" id="petbub" role="status">${esc(petSay(t).s)}</div>`:''}
     </div>
     ${pill}${alerts}
@@ -154,6 +179,7 @@ function applyAppearance() {
 }
 
 const SHOWCASE = ['kitty','bunny','fox','panda','corgi','unicorn','dragon','deer'];
+const PIXEL_PET_IDS = Object.keys(PIXEL_PETS);
 const NEW_PETS = ['unicorn','dragon','deer','dino','capybara','raccoon','whale','axolotl'];
 const PET_COPY = {
   unicorn: 'Милый и волшебный спутник вашего цикла',
@@ -163,7 +189,7 @@ const PET_COPY = {
 };
 function petScreen(filter) {
   const pet = PETS[S.pet];
-  const ids = (filter==='all'?SHOWCASE:Object.keys(PETS)).filter(id => filter==='all' || NEW_PETS.includes(id)===(filter==='new'));
+  const ids = filter==='pixel'?PIXEL_PET_IDS:(filter==='all'?SHOWCASE:Object.keys(PETS).filter(id=>!PIXEL_PETS[id])).filter(id => filter==='all' || NEW_PETS.includes(id)===(filter==='new'));
   const grid = pets => `<div class="pet-gallery">${pets.map(id=>`<button class="pet-tile" aria-pressed="${S.pet===id}" data-pet="${id}">
       ${petImage(id)}<span>${PETS[id].n}</span>${S.pet===id?`<i>${icon('check')}</i>`:''}
     </button>`).join('')}</div>`;
@@ -173,10 +199,10 @@ function petScreen(filter) {
       ${pet ? `<span class="feature-status">${icon('check')} Выбран</span>` : ''}</div>
     </section>
     <div class="pet-filters" aria-label="Категории питомцев">
-      ${[['all','Все'],['classic','Классические'],['new','Новые']].map(([id,label])=>`<button data-filter="${id}" aria-pressed="${id===filter}">${label}${id==='new'?icon('sparkle'):''}</button>`).join('')}
+      ${[['all','Все'],['classic','Классические'],['new','Новые'],['pixel','Пиксельные']].map(([id,label])=>`<button data-filter="${id}" aria-pressed="${id===filter}">${label}${id==='new'?icon('sparkle'):''}</button>`).join('')}
     </div>
     ${grid(ids)}
-    ${filter==='all'?`<details class="extended-pets"><summary class="btn small">Ещё питомцы</summary>${grid(Object.keys(PETS).filter(id=>!SHOWCASE.includes(id)))}</details>`:''}
+    ${filter==='all'?`<div class="pixel-pets-promo"><span>✦ Пиксельные друзья</span><button type="button" data-filter="pixel">Посмотреть ${icon('chevron')}</button></div><details class="extended-pets"><summary class="btn small">Ещё питомцы</summary>${grid(Object.keys(PETS).filter(id=>!SHOWCASE.includes(id)&&!PIXEL_PETS[id]))}</details>`:''}
     <button class="btn small no-pet" data-pet="none" aria-pressed="${S.pet==='none'}">Без питомца ${S.pet==='none'?icon('check'):''}</button>`;
 }
 function appearanceScreen() {
