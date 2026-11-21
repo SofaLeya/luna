@@ -70,8 +70,7 @@ function calView() {
   const title=MONN[month-1]+' '+year;
   const previousDisabled=shiftMonth(calM,-1)===calM?' disabled':'';
   const nextDisabled=shiftMonth(calM,1)===calM?' disabled':'';
-  let html=`<section class="calendar-page" aria-label="Календарь месяца">`;
-  if(periodPick)html+=`<div class="period-pick-hint" role="status"><b>${periodPick==='start'?'Выберите первый день месячных':'Выберите последний день месячных'}</b><span>${periodPick==='start'?'Автоматически отметим '+periodLength()+' '+plural(periodLength(),'день','дня','дней'):'Автоматические отметки после выбранной даты будут убраны'}</span><button class="btn small" id="period-pick-cancel">Отмена</button></div>`;
+  let html=`<section class="calendar-page" aria-label="Календарь месяца">
     <div class="cal-head">
       <button class="icon-btn" id="pm" aria-label="Предыдущий месяц"${previousDisabled}>${icon('previous')}</button>
       <button class="month-control" id="calendar-month" aria-label="Выбрать месяц и год, ${title}"><b>${title}</b>${icon('down')}</button>
@@ -79,6 +78,7 @@ function calView() {
     </div>
     <div class="calendar-actions"><button class="btn small" id="calendar-today" aria-label="Перейти к сегодняшней дате">Сегодня</button>
       <button class="btn small" id="calendar-tools" aria-controls="period-actions" aria-expanded="${calSel?.mode==='menu'}">${icon('drop')} Месячные</button></div>`;
+  if(periodPick)html+=`<div class="period-pick-hint" role="status"><b>${periodPick==='start'?'Выберите первый день месячных':'Выберите последний день месячных'}</b><span>${periodPick==='start'?'Автоматически отметим '+periodLength()+' '+plural(periodLength(),'день','дня','дней'):'Автоматические отметки после выбранной даты будут убраны'}</span><button class="btn small" id="period-pick-cancel">Отмена</button></div>`;
   if(calSel?.mode==='menu'){
     html+=`<div class="calendar-commands row" id="period-actions">
       <button class="btn small" data-rng="add">Отметить период</button>
