@@ -93,9 +93,11 @@ test('месячные: начались, на следующий день сп�
 test('календарь: отметить и стереть диапазон, свайп месяца', async ({ page }) => {
   await setup(page);
   await page.click('[data-tab=cal]');
+  await page.click('#calendar-tools');
   await page.click('[data-rng=add]');
   await page.click('[data-day="2026-11-03"]'); await page.click('[data-day="2026-11-07"]');
   expect(await ev(page, `['2026-11-03','2026-11-07','2026-11-08'].map(k=>(S.days[k]||{}).flow||0)`)).toEqual([3, 2, 0]);
+  await page.click('#calendar-tools');
   await page.click('[data-rng=del]');
   await page.click('[data-day="2026-11-04"]'); await page.click('[data-day="2026-11-05"]');
   expect(await ev(page, `['2026-11-03','2026-11-04','2026-11-06'].map(k=>(S.days[k]||{}).flow||0)`)).toEqual([3, 0, 2]);
@@ -171,7 +173,8 @@ test('окно дня: средства, обезболивающее, свой 
   await page.fill('#sya', 'Спина'); await page.click('#syb');
   await page.locator('.sheet-bg').click({ position: { x: 5, y: 5 } });
   await page.click('[data-tab=cal]');
-  await page.evaluate(() => openDay('2026-11-18'));
+  await page.click('[data-day="2026-11-18"]');
+  await page.click('#calendar-edit');
   await page.click('[data-pd="1"]'); await page.click('[data-pd="1"]');
   await page.fill('#mdn', 'Нурофен'); await page.click('#mda');
   await page.click('[data-s="Спина"]');
@@ -188,9 +191,11 @@ test('питомец: реагирует на касание, можно сме�
   await page.click('#petb');
   await expect(page.locator('#petbub')).toHaveText('Мур!');
   await openSettings(page);
+  await page.click('#open-pets');
   await page.click('[data-pet=panda]');
   expect(await ev(page, 'S.pet')).toBe('panda');
   await page.click('[data-pet=none]');
+  await page.click('#design-back');
   await page.locator('.sheet-bg').click({ position: { x: 5, y: 5 } });
   await expect(page.locator('#petb')).toHaveCount(0);
 });

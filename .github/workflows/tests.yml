@@ -7,6 +7,8 @@ on:
       - '*.md'
       - 'android/**'
       - '.github/workflows/android.yml'
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -20,18 +22,14 @@ concurrency:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: '22'
-      - run: npm install
-      # на раннере GitHub уже есть Google Chrome - тесты идут в нём
-      - name: Браузер для тестов
-        run: |
-          if [ -x /usr/bin/google-chrome ]; then echo "CHROME_PATH=/usr/bin/google-chrome" >> "$GITHUB_ENV"
-          else npx playwright install --with-deps chromium; fi
+      - run: npm ci
+      - run: npx playwright install --with-deps --only-shell chromium
       - run: npx playwright test
       - uses: actions/upload-artifact@v7
         if: failure()
@@ -41,8 +39,9 @@ jobs:
 
   # Сайт выкладывается только если все тесты зелёные
   deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -51,7 +50,10 @@ jobs:
       - name: Собрать папку сайта
         run: |
           mkdir _site
-          cp index.html sw.js version.txt manifest.webmanifest icon-*.png _site/
+          cp index.html sw.js manifest.webmanifest icon-*.png _site/
+          cp -r assets scripts styles _site/
+          printf '%s\n' "${GITHUB_SHA}" > _site/version.txt
+          sed -i "s/name=\"luna-build\" content=\"development\"/name=\"luna-build\" content=\"${GITHUB_SHA}\"/" _site/index.html
           [ -d .well-known ] && cp -r .well-known _site/ || true
           ls _site
       - uses: actions/configure-pages@v6
