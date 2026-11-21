@@ -196,9 +196,9 @@ function bindCalendar() {
         renderCalendar(`[data-cal-day="${day}"]`);
         return;
       }
-      // Tap an already focused day to toggle its period marking; the first tap selects it.
-      if(calFocus===day){toggleCalendarPeriod(day);return}
       calFocus=day;calM=day.slice(0,7);calSel=null;
+      // A single tap toggles bleeding, while preserving all other day records.
+      if(day<=today()||periodFlow(day)){toggleCalendarPeriod(day);return}
       renderCalendar(`[data-cal-day="${day}"]`);
       const editButton=$('#calendar-edit');
       if(editButton && editButton.getBoundingClientRect().bottom>$('nav.tabs').getBoundingClientRect().top){
@@ -214,7 +214,7 @@ function bindCalendar() {
   });
 }
 function toggleCalendarPeriod(k){
-  if(k>today()){toast('Будущие дни можно отметить через начало месячных');return}
+  if(k>today()&&!periodFlow(k)){toast('Будущие дни можно отметить через начало месячных');return}
   const previous=S.days[k]?S.days[k].flow||0:0;
   if(S.autoPeriodDays)delete S.autoPeriodDays[k];
   S.days[k]=S.days[k]||{sym:[],note:''};
