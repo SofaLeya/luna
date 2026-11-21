@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#120a12">
+<meta name="theme-color" content="#171025">
 <meta name="color-scheme" content="dark">
 <title>Луна</title>
 <link rel="manifest" href="manifest.webmanifest">
@@ -203,14 +203,44 @@ body:has(nav.tabs button[data-tab="cal"].on) .legend{font-size:11px;margin-top:8
 /* Kawaii facial polish */
 .pet svg,.ptile svg{overflow:visible;filter:drop-shadow(0 3px 3px #0004)}
 @media(max-height:760px){.wrap{padding-top:4px}.card{margin-bottom:6px}nav.tabs button{padding:3px 0}}
+
+/* Lavender Dreams: cohesive dark velvet theme, responsive cloud atmosphere */
+:root{--bg:#100c1e;--bg2:#1b1530;--card:#241b3b;--card2:#302347;--line:#54416f;--tx:#f5efff;--mut:#c4b3dc;--dim:#9d8bb6;--rose:#d69ce7;--rose2:#ad78c8;--plum:#9872d1;--r:22px}
+html{color-scheme:dark}
+body{background:radial-gradient(ellipse 85% 32% at 90% -4%,#50336e80,transparent 78%),radial-gradient(ellipse 85% 24% at -15% 30%,#64477b55,transparent 85%),linear-gradient(165deg,#171027,#100c1e 55%,#19112c);background-attachment:fixed}
+body:before{content:"";position:fixed;z-index:0;pointer-events:none;inset:0 0 70px;background:radial-gradient(ellipse 28% 7% at 3% 18%,#c5a0e320,transparent 95%),radial-gradient(ellipse 32% 9% at 98% 46%,#b998dc1d,transparent 95%),radial-gradient(ellipse 40% 9% at 5% 87%,#c7a5e41b,transparent 95%);opacity:.85}
+.wrap{position:relative;z-index:1}
+header{padding:2px 0 10px}
+header h1{font-weight:800;letter-spacing:.2px}
+header h1 span{color:#d8b4f3;text-shadow:0 0 14px #a66bc880}
+.icon-btn{background:#302344cc;color:#ead8fa;border:1px solid #6e53854a;box-shadow:inset 0 1px #ffffff0b}
+.card{background:linear-gradient(145deg,#38274dc9,#21172fe8 85%);border:1px solid #795a935c;box-shadow:0 12px 28px #08051335,inset 0 1px #ffffff12;backdrop-filter:blur(12px)}
+.btn{background:#392b50;border-color:#6c5285}
+.btn.main{background:linear-gradient(120deg,#b77bcc,#8466c6);box-shadow:0 7px 22px #9c65c13b;color:#fff}
+.hero{padding:15px 12px}
+.hero .hb{background:linear-gradient(110deg,#f0b4e4,#bca4ff);background-clip:text;-webkit-background-clip:text}
+.pet c{color:inherit}
+.petc{background:radial-gradient(ellipse at 14% 80%,#a778bc24,transparent 65%),linear-gradient(130deg,#322341,#22172f)}
+.bub{background:#1b142c;border-color:#634e7e}
+.tabs{background:#171025f2;border-top:1px solid #70518b70;box-shadow:0 -12px 30px #0b071a50}
+nav.tabs button{color:#b8a6ce}
+nav.tabs button.on{color:#e4b6f2}
+nav.tabs button .e{filter:none!important;font-size:23px}
+nav.tabs button.on .e{filter:drop-shadow(0 0 7px #bc85eaaa)!important}
+.grid .d{background:#2e2244;border-color:#4e3b6a}
+.d{transition:background .18s,border-color .18s}
+.d:focus-visible,button:focus-visible{outline:2px solid #dfb7f5;outline-offset:2px}
+input,select,textarea{background:#1c1530;border-color:#5b4674}
+@media(max-height:780px){.wrap{padding-top:8px}.card{padding:12px;margin-bottom:9px}.hero{padding:11px}.petc{padding:9px}.tabs{padding-top:3px}}
+@media(prefers-reduced-motion:reduce){.d{transition:none}}
 </style>
 </head>
 <body>
 <div class="wrap" id="app"></div>
 <nav class="tabs"><div class="in">
-  <button data-tab="today" class="on"><span class="e">🌙</span>Сегодня</button>
-  <button data-tab="cal"><span class="e">📅</span>Календарь</button>
-  <button data-tab="stats"><span class="e">📊</span>Анализ</button>
+  <button data-tab="today" class="on"><span class="e">☾</span>Сегодня</button>
+  <button data-tab="cal"><span class="e">▦</span>Календарь</button>
+  <button data-tab="stats"><span class="e">▥</span>Анализ</button>
 </div></nav>
 
 <script>
