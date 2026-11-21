@@ -132,8 +132,9 @@ function dashboard(t,pill='',alerts='') {
       ${pet?`<button class="mascot pet${resting?' is-resting':''}" id="petb" aria-label="Выбрать питомца. Сейчас ${pet.n}">${petImage(resting?'unicorn-rest':S.pet)}</button>
         <div class="mascot-message" id="petbub" role="status">${esc(petSay(t).s)}</div>`:''}
     </div>
-    ${curPeriod(t)?.today ? `<section class="card hygiene-home" aria-label="Средства гигиены сегодня"><div class="hygiene-home-title">🩸 <strong>Средства гигиены сегодня</strong></div><div class="hygiene-home-controls"><span class="dim sm">Прокладки, тампоны, смены чаши</span><div class="step"><button type="button" data-home-pads="-1" aria-label="Уменьшить количество средств">−</button><b data-home-pads-count>${(S.days[t]||{}).pads||0}</b><span class="mut">шт.</span><button type="button" data-home-pads="1" aria-label="Увеличить количество средств">+</button></div></div></section>` : ''}
-    ${pill}${alerts}
+    ${pill}
+    ${curPeriod(t)?.today ? `<section class="card hygiene-home" aria-label="Средства гигиены сегодня"><div class="hygiene-home-row"><strong>🩸 Средства гигиены</strong><div class="step"><button type="button" data-home-pads="-1" aria-label="Уменьшить количество средств">−</button><b data-home-pads-count>${(S.days[t]||{}).pads||0}</b><span class="mut">шт.</span><button type="button" data-home-pads="1" aria-label="Увеличить количество средств">+</button></div></div></section>` : ''}
+    ${alerts}
     <div class="dashboard-metrics">
       <button class="metric" id="metric-calendar"><span>${fertile?'Прогноз фертильных дней':'Календарь цикла'}</span>
         <small>${fertile?'Около '+shortDate(fertile):'Все отметки по дням'}</small>${icon(fertile?'sprout':'calendar','metric-symbol')}</button>
