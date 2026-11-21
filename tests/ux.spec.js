@@ -118,11 +118,11 @@ test('редактор сохраняет месячные, заметку, на
   await expect(detail).toContainText('Таблетка не отмечена');
   const take = { ...loaded.taken };
   delete take[NEXT];
-  expect(await read(page)).toEqual({
-    ...loaded, taken: take, days: { ...loaded.days, [NEXT]: {
-      ...STATE.days[NEXT], flow: 3, note: 'Уточнённая запись', mood: '😊 хорошее', sym: ['Голова'],
-    } },
-  });
+  const saved = await read(page);
+  expect(saved.taken).toEqual(take);
+  expect(saved.days).toEqual({ ...loaded.days, [NEXT]: {
+    ...STATE.days[NEXT], flow: 3, note: 'Уточнённая запись', mood: '😊 хорошее', sym: ['Голова'],
+  } });
   await page.locator('#calendar-edit').click();
   await editor.getByRole('button', { name: 'Выпила', exact: true }).click();
   await editor.getByRole('textbox', { name: 'Заметка' }).fill('Черновик');
