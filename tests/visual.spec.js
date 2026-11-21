@@ -76,7 +76,10 @@ for (const [label, viewport] of [
     test('главная с КОК и редактор записи', async ({ page }) => {
       await openLuna(page,'pill');
       await expect(page.locator('.pill-today')).toContainText('Активная');
-      // Home layout changed for pill mode as well; assert the counter and responsive width.\n      await expect(page.locator('.hygiene-home')).toBeVisible();\n      await expect(page.locator('.hygiene-home [data-home-pads-count]')).toHaveText('0');\n      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize().width);
+      // Home layout changed for pill mode as well; assert the counter and responsive width.\n      await expect(page.locator('.hygiene-home')).toBeVisible();\n      await expect(page.locator('.hygiene-home [data-home-pads-count]')).toHaveText('0');
+      expect(await page.locator('.pill-card, .hygiene-home').evaluateAll(els => els.map(el => el.classList.contains('hygiene-home') ? 'hygiene' : 'pill'))).toEqual(['pill','hygiene']);
+      const hygieneHeight=await page.locator('.hygiene-home').evaluate(el=>el.getBoundingClientRect().height);
+      expect(hygieneHeight).toBeLessThan(90);\n      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize().width);
       await page.getByRole('button', { name: 'Запись за сегодня' }).click();
       await expect(page.getByRole('dialog', { name: /Запись · 21 ноября/ })).toBeVisible();
       await snapshot(page, `${label}-editor.png`);
