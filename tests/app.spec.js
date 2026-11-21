@@ -187,17 +187,21 @@ test('окно дня: средства, обезболивающее, свой 
   await expect(page.locator('.ep.nt:not(.hide)')).toHaveCount(1);
 });
 
-test('питомец: реагирует на касание, можно сменить и убрать', async ({ page }) => {
+test('питомец: нажатие открывает выбор, пиксельные доступны и выбор сохраняется', async ({ page }) => {
   await setup(page);
   await page.click('#petb');
-  await expect(page.locator('#petbub')).toHaveText('Мур!');
-  await openSettings(page);
-  await page.click('#open-pets');
-  await page.click('[data-pet=panda]');
-  expect(await ev(page, 'S.pet')).toBe('panda');
-  await page.click('[data-pet=none]');
+  await expect(page.getByRole('dialog', { name: 'Питомец' })).toBeVisible();
+  await page.click('[data-filter="pixel"]');
+  await expect(page.locator('[data-pet="pixel_kitty"]')).toBeVisible();
+  await page.click('[data-pet="pixel_kitty"]');
+  expect(await ev(page, 'S.pet')).toBe('pixel_kitty');
   await page.click('#design-back');
-  await page.locator('.sheet-bg').click({ position: { x: 5, y: 5 } });
+  await expect(page.locator('#petb .pixel-pet-art')).toBeVisible();
+  await page.reload();
+  await expect(page.locator('#petb .pixel-pet-art')).toBeVisible();
+  await page.click('#petb');
+  await page.click('[data-pet="none"]');
+  await page.click('#design-back');
   await expect(page.locator('#petb')).toHaveCount(0);
 });
 
