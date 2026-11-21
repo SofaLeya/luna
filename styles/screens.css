@@ -421,8 +421,7 @@ body:has(.sheet-bg) { overflow:hidden; }
 button[hidden],.notes-list [hidden] { display:none; }
 
 /* Pixel-art companions: crisp pixels and a dedicated category */
-.pixel-pet-art{image-rendering:pixelated;shape-rendering:crispEdges;filter:drop-shadow(0 5px 2px #1c0c2c99)}
-.pet-tile .pixel-pet-art{width:80%;padding:4px}
+.pixel-pet-art{image-rendering:pixelated;filter:drop-shadow(0 5px 2px #1c0c2c99)}
 .pet-feature .pixel-pet-art{width:95%;max-height:150px;transform:none;filter:drop-shadow(0 8px 2px #1c0c2c80)}
 .mascot .pixel-pet-art{filter:drop-shadow(0 8px 2px #1c0c2c99)}
 .pixel-pets-promo{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 4px;padding:12px;border:1px solid #c58bdf66;border-radius:16px;background:linear-gradient(110deg,#513268,#322245)}

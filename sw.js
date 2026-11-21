@@ -1,12 +1,13 @@
 // Load current files when online and retain the complete app for offline use.
-const CACHE = 'luna-shell-v18';
+const CACHE = 'luna-shell-v19';
 const FILES = [
   'index.html', 'manifest.webmanifest', 'styles/base.css', 'styles/screens.css',
   'scripts/app.js', 'scripts/screens.js', 'scripts/calendar.js', 'assets/fonts/manrope-cyrillic.woff2', 'assets/fonts/manrope-latin.woff2',
   'icon-192.png', 'icon-512.png', 'icon-maskable-192.png', 'icon-maskable-512.png',
   ...['dream','moon','pink','stars','dusk','crescent','cloudbank'].map(id => 'assets/sky/' + id + '.webp'),
   ...['kitty','bunny','fox','panda','corgi','unicorn','dragon','deer','penguin','koala','owl',
-    'llama','hedgehog','dino','capybara','raccoon','whale','axolotl','unicorn-rest'].map(id => 'assets/pets/' + id + '.webp'),
+    'llama','hedgehog','dino','capybara','raccoon','whale','axolotl','unicorn-rest',
+    'pixel_kitty','pixel_bunny','pixel_fox','pixel_ghost','pixel_mooncat','pixel_hedgehog','pixel_owl','pixel_dragon'].map(id => 'assets/pets/' + id + '.webp'),
 ];
 const base = new URL(self.registration.scope);
 const entry = new URL('index.html', base);

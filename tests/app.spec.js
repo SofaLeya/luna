@@ -142,7 +142,9 @@ test('код-пароль: поставить, неверный, верный', 
   await setup(page);
   await openSettings(page);
   await page.click('#pinon');
-  for (const d of '12341234') await page.click(`.lock [data-k="${d}"]`);
+  for (const d of '1234') await page.click(`.lock [data-k="${d}"]`);
+  await expect(page.locator('.lock .ls')).toHaveText('повтори код');
+  for (const d of '1234') await page.click(`.lock [data-k="${d}"]`);
   await expect(page.locator('.lock')).toHaveCount(0);
   await page.reload();
   for (const d of '1111') await page.click(`.lock [data-k="${d}"]`);
@@ -187,22 +189,45 @@ test('окно дня: средства, обезболивающее, свой 
   await expect(page.locator('.ep.nt:not(.hide)')).toHaveCount(1);
 });
 
-test('питомец: нажатие открывает выбор, пиксельные доступны и выбор сохраняется', async ({ page }) => {
+test('восемь WebP в плитках, большой карточке и на главной, выбор переживает перезагрузку', async ({ page }) => {
   await setup(page);
-  await page.click('#petb');
-  await expect(page.getByRole('dialog', { name: 'Питомец' })).toBeVisible();
-  await page.click('[data-filter="pixel"]');
-  await expect(page.locator('[data-pet="pixel_kitty"]')).toBeVisible();
-  await page.click('[data-pet="pixel_kitty"]');
-  expect(await ev(page, 'S.pet')).toBe('pixel_kitty');
-  await page.click('#design-back');
-  await expect(page.locator('#petb .pixel-pet-art')).toBeVisible();
+  const pets = ['pixel_kitty','pixel_bunny','pixel_fox','pixel_ghost',
+    'pixel_mooncat','pixel_hedgehog','pixel_owl','pixel_dragon'];
+  const mascot = page.locator('#petb');
+  const dialog = page.getByRole('dialog', { name: 'Питомец' });
+  const pixelFilter = dialog.getByRole('button', { name: 'Пиксельные', exact: true });
+  const back = dialog.getByRole('button', { name: 'Назад', exact: true });
+
+  async function checkImage(locator, pet) {
+    await expect(locator).toBeVisible();
+    await expect(locator).toHaveAttribute('src', `assets/pets/${pet}.webp`);
+    expect(await locator.evaluate(async img => {
+      await img.decode();
+      return [img.naturalWidth, img.naturalHeight, getComputedStyle(img).objectFit];
+    })).toEqual([100, 100, 'contain']);
+  }
+
+  for (const pet of pets) {
+    await mascot.click();
+    await pixelFilter.click();
+    const tile = dialog.locator(`[data-pet="${pet}"]`);
+    await checkImage(tile.locator('img.pixel-pet-art'), pet);
+    await tile.click();
+    await expect(tile).toHaveAttribute('aria-pressed', 'true');
+    await checkImage(dialog.locator('.pet-feature img.pixel-pet-art'), pet);
+    await back.click();
+    await checkImage(mascot.locator('img.pixel-pet-art'), pet);
+  }
+
   await page.reload();
-  await expect(page.locator('#petb .pixel-pet-art')).toBeVisible();
-  await page.click('#petb');
-  await page.click('[data-pet="none"]');
-  await page.click('#design-back');
-  await expect(page.locator('#petb')).toHaveCount(0);
+  await checkImage(mascot.locator('img.pixel-pet-art'), pets.at(-1));
+  expect(await ev(page, "JSON.parse(localStorage.getItem('luna-v1')).pet")).toBe(pets.at(-1));
+  await mascot.click();
+  await pixelFilter.click();
+  await expect(dialog.locator(`[data-pet="${pets.at(-1)}"]`)).toHaveAttribute('aria-pressed', 'true');
+  await dialog.locator('[data-pet="none"]').click();
+  await back.click();
+  await expect(mascot).toHaveCount(0);
 });
 
 test('синхронизация: второе устройство получает данные и правки склеиваются', async ({ browser }) => {

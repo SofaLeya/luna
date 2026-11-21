@@ -64,86 +64,15 @@ function shortDate(k) {
 function toolButton(id, glyph, label, extra='') {
   return `<button class="icon-btn screen-tool" id="${id}" aria-label="${label}">${icon(glyph)}${extra}</button>`;
 }
-const PIXEL_PETS = {
-  pixel_kitty:{name:'Котик',fur:'#e9a15f',light:'#fff0d2',shade:'#b66b54',eye:'#533650',blush:'#ee91ad',type:'cat'},
-  pixel_bunny:{name:'Зайка',fur:'#f9e9fa',light:'#fffaff',shade:'#c6a6d9',eye:'#5d466c',blush:'#f1a9c9',type:'bunny'},
-  pixel_fox:{name:'Лисичка',fur:'#e99051',light:'#fff0ce',shade:'#aa5b50',eye:'#57364c',blush:'#ef9aab',type:'fox'},
-  pixel_ghost:{name:'Призрак',fur:'#d7b9f2',light:'#f5eaff',shade:'#a37bcf',eye:'#57436c',blush:'#ee9dc8',type:'ghost'},
-  pixel_mooncat:{name:'Лунный котик',fur:'#8170a7',light:'#c9b9e6',shade:'#594878',eye:'#f7d784',blush:'#e9a2c8',type:'mooncat'},
-  pixel_hedgehog:{name:'Ёжик',fur:'#edc69f',light:'#fff1d6',shade:'#9a6b79',eye:'#5b415a',blush:'#ef9ab1',type:'hedgehog'},
-  pixel_owl:{name:'Совушка',fur:'#b69bda',light:'#fff2e5',shade:'#8270b2',eye:'#654a76',blush:'#eaa1c6',type:'owl'},
-  pixel_dragon:{name:'Дракончик',fur:'#ad8ad8',light:'#f4d6e9',shade:'#775aa6',eye:'#594673',blush:'#ef9dc7',type:'dragon'}
-};
-function pixelPetArt(id){
-  const p=PIXEL_PETS[id];if(!p)return '';
-  const r=(x,y,w,h,c)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/>`;
-  const path=(d,c)=>`<path d="${d}" fill="${c}"/>`;
-  const {fur:f,light:l,shade:d,eye:e,blush:b,type:t}=p;
-  const star=(x,y)=>r(x+2,y,2,8,'#f8d786')+r(x,y+3,6,2,'#f8d786')+r(x+2,y+2,2,4,'#fff4ca');
-  let out='';
-  if(t==='ghost'){
-    out+=path('M11 15H15V11H20V8H32V10H39V14H43V18H46V37H43V41H38V44H31V42H25V44H18V41H12V37H9V20H11Z',d);
-    out+=path('M13 17H17V12H23V10H31V12H38V16H41V20H44V36H40V39H34V41H28V39H22V41H16V38H12V20H13Z',f);
-    out+=path('M17 18H21V15H34V17H38V24H40V34H36V37H21V35H16V23H17Z',l);
-    out+=r(21,24,4,6,e)+r(32,24,4,6,e)+r(22,24,1,2,'#fff')+r(33,24,1,2,'#fff')+r(27,32,4,3,b);
-    out+=path('M13 14H18V10H26V6H37V9H42V13H47V17H12Z',d)+path('M23 9H28V5H36V9H40V12H23Z',f);
-    out+=star(29,10)+star(43,30);
-  }else{
-    if(t==='hedgehog'){
-      out+=path('M8 22L5 17L11 16L9 10L17 13L18 7L24 11L29 6L33 12L40 10L39 17L46 18L43 24L47 29L43 35L38 42H18L11 37L8 29Z',d);
-      for(let i=0;i<8;i++)out+=r(11+i*4,14+(i%2)*2,3,4,i%2?'#b18a94':'#876277');
-    }
-    if(t==='dragon'){
-      out+=path('M39 30H46V26H50V30H47V36H43V41H36Z',d);
-      out+=path('M12 26L4 18L17 22L18 12L28 22L39 13L42 24L46 31L38 36L22 34Z',d);
-      out+=path('M13 27L7 21L20 25L20 17L29 26L39 18L41 26L40 34L20 33Z',f);
-    }
-    if(t==='owl'){
-      out+=path('M12 14L10 6L20 11H34L44 6L42 14L46 23V37L40 44H15L9 37V23Z',d);
-      out+=path('M14 15L13 10L21 14H33L41 10L40 15L43 23V37L38 41H17L12 36V23Z',f);
-    }else{
-      // Tail, feet and rounded sitting body.
-      if(t==='fox')out+=path('M38 31H45V25H49V30H52V40H48V44H35Z',d)+path('M40 32H46V29H49V38H44V41H38Z',f)+r(46,38,4,4,l);
-      if(t==='cat'||t==='mooncat')out+=path('M12 36H8V29H5V36H7V42H15Z',d)+path('M11 36H9V31H7V38H12Z',f);
-      out+=path('M17 30H37V33H42V40H39V45H15V42H12V36H15Z',d);
-      out+=path('M18 31H36V34H39V40H36V43H17V40H15V35H18Z',f);
-      out+=r(19,38,5,5,l)+r(31,38,5,5,l);
-      if(t==='hedgehog')out+=path('M18 32H37V40H32V43H20V40H16V35Z',l);
-      if(t==='bunny')out+=path('M14 5H21V17H25V3H32V17H37V21H13Z',d)+path('M16 6H20V19H26V5H30V20H17Z',f)+r(18,8,2,9,b)+r(28,7,2,10,b);
-      else if(t==='fox')out+=path('M11 20L12 5L22 13H32L43 5L44 20Z',d)+path('M14 18L15 9L23 15H32L40 9L41 19Z',f)+r(17,12,3,5,l)+r(37,12,3,5,l);
-      else if(t==='cat'||t==='mooncat')out+=path('M12 20V6L22 13H32L43 6V20Z',d)+path('M15 18V10L23 16H31L40 10V19Z',f)+r(17,12,3,5,b)+r(36,12,3,5,b);
-      else if(t==='dragon')out+=path('M14 19L12 7L21 13H33L42 7L43 21Z',d)+path('M16 18L15 11L23 16H31L39 11L40 20Z',f)+r(17,12,3,4,l)+r(36,12,3,4,l);
-      if(t!=='hedgehog')out+=path('M12 21H15V17H20V15H36V17H41V21H44V31H41V35H37V38H18V35H14V32H11V24H12Z',d)+path('M15 21H18V18H37V21H40V24H42V31H39V34H35V36H19V34H16V31H13V24H15Z',f);
-      else out+=path('M14 24H17V19H24V16H34V19H39V24H42V34H38V38H20V36H15Z',l);
-    }
-    if(t==='owl'){
-      out+=path('M18 21H37V24H41V34H38V39H18V35H15V25H18Z',l);
-      out+=r(21,26,5,5,e)+r(32,26,5,5,e)+r(22,26,2,2,'#fff')+r(33,26,2,2,'#fff');
-      out+=path('M27 32H32L30 36H28Z','#f4b66b');
-      out+=r(18,39,5,4,'#efbc7d')+r(34,39,5,4,'#efbc7d');
-    }else{
-      if(t==='mooncat'){out+=r(19,23,5,7,e)+r(34,23,5,7,e)+r(21,24,2,3,'#fff8dc')+r(36,24,2,3,'#fff8dc');}
-      else{out+=r(20,24,5,5,e)+r(34,24,5,5,e)+r(21,24,2,2,'#fff')+r(35,24,2,2,'#fff');}
-      out+=r(16,30,5,3,b)+r(38,30,5,3,b);
-      out+=r(28,29,4,3,b)+r(29,32,2,2,e)+r(25,34,4,1,e)+r(31,34,4,1,e);
-      if(t==='fox')out+=r(19,34,6,4,l)+r(34,34,6,4,l);
-      if(t==='dragon')out+=path('M24 35H36V40H33V43H27V40H24Z',l);
-    }
-  }
-  // Accessories tie each companion to the dreamy moonlit aesthetic.
-  if(t==='bunny')out+=r(38,35,7,5,'#a982d5')+r(34,33,5,5,'#b59be3')+r(45,33,5,5,'#b59be3')+r(40,36,3,3,'#f4d7ff');
-  if(t==='fox')out+=path('M17 37H39V40H34V43H23V40H17Z','#8b668d')+r(26,40,5,4,'#c8a1cb');
-  if(t==='mooncat')out+=path('M26 17H33V19H30V23H27V21H25V19H26Z','#ffe09d')+star(38,38);
-  if(t==='hedgehog')out+=star(38,11)+r(26,39,5,4,'#b49ce4');
-  if(t==='owl')out+=path('M7 44H49V46H7Z','#8d7392')+r(12,43,7,2,'#ad9297');
-  if(t==='dragon')out+=path('M8 40H13V34H16V29H19V34H22V40H26V44H8Z','#f4d7a0')+star(11,34);
-  if(t==='cat')out+=star(43,15);
-  return `<svg class="pet-art pixel-pet-art" viewBox="0 0 56 52" role="img" aria-label="${PETS[id].n}" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">${out}</svg>`;
-}
+const PIXEL_PET_IDS = new Set([
+  'pixel_kitty','pixel_bunny','pixel_fox','pixel_ghost',
+  'pixel_mooncat','pixel_hedgehog','pixel_owl','pixel_dragon',
+]);
 
 function petImage(id) {
-  if(PIXEL_PETS[id])return pixelPetArt(id);
-  return `<img class="pet-art" src="assets/pets/${id}.webp" alt="" width="256" height="256" draggable="false">`;
+  const pixel = PIXEL_PET_IDS.has(id);
+  const size = pixel ? 100 : 256;
+  return `<img class="pet-art${pixel?' pixel-pet-art':''}" src="assets/pets/${id}.webp" alt="" width="${size}" height="${size}" draggable="false">`;
 }
 
 function render() {
@@ -240,7 +169,6 @@ function applyAppearance() {
 }
 
 const SHOWCASE = ['kitty','bunny','fox','panda','corgi','unicorn','dragon','deer'];
-const PIXEL_PET_IDS = Object.keys(PIXEL_PETS);
 const NEW_PETS = ['unicorn','dragon','deer','dino','capybara','raccoon','whale','axolotl'];
 const PET_COPY = {
   unicorn: 'Милый и волшебный спутник вашего цикла',
@@ -250,7 +178,7 @@ const PET_COPY = {
 };
 function petScreen(filter) {
   const pet = PETS[S.pet];
-  const ids = filter==='pixel'?PIXEL_PET_IDS:(filter==='all'?SHOWCASE:Object.keys(PETS).filter(id=>!PIXEL_PETS[id])).filter(id => filter==='all' || NEW_PETS.includes(id)===(filter==='new'));
+  const ids = filter==='pixel'?[...PIXEL_PET_IDS]:(filter==='all'?SHOWCASE:Object.keys(PETS).filter(id=>!PIXEL_PET_IDS.has(id))).filter(id => filter==='all' || NEW_PETS.includes(id)===(filter==='new'));
   const grid = pets => `<div class="pet-gallery">${pets.map(id=>`<button class="pet-tile" aria-pressed="${S.pet===id}" data-pet="${id}">
       ${petImage(id)}<span>${PETS[id].n}</span>${S.pet===id?`<i>${icon('check')}</i>`:''}
     </button>`).join('')}</div>`;
@@ -263,7 +191,7 @@ function petScreen(filter) {
       ${[['all','Все'],['classic','Классические'],['new','Новые'],['pixel','Пиксельные']].map(([id,label])=>`<button data-filter="${id}" aria-pressed="${id===filter}">${label}${id==='new'?icon('sparkle'):''}</button>`).join('')}
     </div>
     ${grid(ids)}
-    ${filter==='all'?`<div class="pixel-pets-promo"><span>✦ Пиксельные друзья</span><button type="button" data-filter="pixel">Посмотреть ${icon('chevron')}</button></div><details class="extended-pets"><summary class="btn small">Ещё питомцы</summary>${grid(Object.keys(PETS).filter(id=>!SHOWCASE.includes(id)&&!PIXEL_PETS[id]))}</details>`:''}
+    ${filter==='all'?`<div class="pixel-pets-promo"><span>✦ Пиксельные друзья</span><button type="button" data-filter="pixel">Посмотреть ${icon('chevron')}</button></div><details class="extended-pets"><summary class="btn small">Ещё питомцы</summary>${grid(Object.keys(PETS).filter(id=>!SHOWCASE.includes(id)&&!PIXEL_PET_IDS.has(id)))}</details>`:''}
     <button class="btn small no-pet" data-pet="none" aria-pressed="${S.pet==='none'}">Без питомца ${S.pet==='none'?icon('check'):''}</button>`;
 }
 function appearanceScreen() {
