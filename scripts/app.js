@@ -235,14 +235,33 @@ function statsView(){
   </section>`+forecastCard()+chronologyCard(cs.rows)+notesCard()+
     disclosure('stats-extra','Дополнительная аналитика',analysisDetails());
 }
+function analysisWeek(date,kind='period'){
+  const d=parse(date);
+  const monday=add(date,-((d.getDay()+6)%7));
+  const week=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  const cells=week.map((day,i)=>{
+    const k=add(monday,i),selected=k===date;
+    const number=Number(k.slice(8,10));
+    const month=k.slice(5,7)!==date.slice(5,7);
+    return `<button type="button" class="analysis-week-day${selected?' is-selected':''}${month?' other-month':''}" data-week-day="${k}" aria-label="${day}, ${fmt(k)}${selected?', дата события':''}" aria-current="${selected?'date':'false'}"><span class="analysis-week-label">${day}</span><strong>${number}</strong></button>`;
+  }).join('');
+  return `<div class="analysis-week ${kind==='pill'?'analysis-week-pill':'analysis-week-period'}" role="group" aria-label="Неделя события: ${fmt(date)}"><div class="analysis-week-days">${cells}</div><span class="analysis-week-month">${fmt(date)} ${parse(date).getFullYear()}</span></div>`;
+}
+function openAnalysisWeekDay(k){
+  periodPick=null;
+  calSel=null;
+  calFocus=k;
+  calM=k.slice(0,7);
+  changeTab('cal');
+  if(tab==='cal')renderCalendar();
+}
 function chronologyCard(records){
   const rows=records.slice().reverse();
   const items=rows.map(({e,cyc})=>{
     const pads=padsOf(e);
-    return `<div class="ep"><span><b>${fmt(e.start)} ${parse(e.start).getFullYear()}</b>
-      ${e.kind==='прорывное'?'<span class="tag br">прорывное</span>':''}
-      <small>${e.n} ${plural(e.n,'день','дня','дней')}${pads?' · '+pads+' шт.':''}</small></span>
-      <span class="mut">${cyc?cyc+' д. цикл':e.end>=today()&&!S.ended[e.start]?'Текущий':''}</span></div>`;
+    return `<div class="analysis-week-event"><div class="analysis-week-event-head"><b>${fmt(e.start)} ${parse(e.start).getFullYear()}</b><span class="mut">${cyc?cyc+' д. цикл':e.end>=today()&&!S.ended[e.start]?'Текущий':''}</span></div>
+      ${analysisWeek(e.start,'period')}
+      <div class="analysis-week-caption">${e.kind==='прорывное'?'<span class="tag br">прорывное</span>':''}${e.n} ${plural(e.n,'день','дня','дней')}${pads?' · '+pads+' шт.':''}</div></div>`;
   });
   return disclosure('stats-history','Хронология', items.length?previewList('history',items,3):'<p class="empty-note">Отметьте месячные, чтобы здесь появилась история циклов.</p>',{open:true});
 }
@@ -352,9 +371,9 @@ function forecast(n){
   return out;
 }
 function forecastCard(){
-  const events=forecast(6).map(event=>`<div class="ep"><b>${fmtW(event.k)}</b><span>${event.t==='p'
-    ?`Месячные · около ${C().dur} д.`
-    :`Начало пачки${event.sk?' без перерыва':''}`}</span></div>`);
+  const events=forecast(6).map(event=>`<div class="analysis-week-event"><div class="analysis-week-event-head"><b>${event.t==='p'?'Прогноз месячных':'Начало пачки'}</b><span class="mut">${fmtW(event.k)}</span></div>
+    ${analysisWeek(event.k,event.t==='p'?'period':'pill')}
+    <div class="analysis-week-caption">${event.t==='p'?`Около ${C().dur} д.`:`Начало новой пачки${event.sk?' без перерыва':''}`}</div></div>`);
   return disclosure('stats-forecast','Вперёд',events.length
     ?`<p class="empty-note">Расчётные даты по текущим записям и схеме.</p>`+previewList('forecast',events,3)
     :'<p class="empty-note">Пока мало данных для прогноза.</p>',{open:true});
@@ -461,6 +480,7 @@ function bindView(){
   document.querySelectorAll('[data-unmark]').forEach(b=>b.onclick=()=>{const k=b.dataset.unmark,old=S.taken[k];delete S.taken[k];save();render();toast('Отметка снята',()=>{S.taken[k]=old;save();render()})});
   document.querySelectorAll('[data-help]').forEach(b=>b.onclick=()=>openHelp(b.dataset.help));
   document.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>openDay(b.dataset.day));
+  document.querySelectorAll('[data-week-day]').forEach(b=>b.onclick=()=>openAnalysisWeekDay(b.dataset.weekDay));
   document.querySelectorAll('[data-start]').forEach(b=>b.onclick=()=>periodCalendarMode('start'));
   document.querySelectorAll('[data-cont]').forEach(b=>b.onclick=()=>{const t=today(),y=S.days[add(t,-1)];S.days[t]=S.days[t]||{};S.days[t].flow=y&&y.flow?y.flow:2;save();render()});
   document.querySelectorAll('[data-end]').forEach(b=>b.onclick=()=>periodCalendarMode('end'));
