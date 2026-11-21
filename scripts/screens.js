@@ -28,6 +28,8 @@ const ICONS = {
   settings: '<path d="m10 2 4 0 .6 3 2 .9 2.6-1.6 2.6 2.7-1.5 2.6.8 2.4 2.9.7v3.6l-3 .6-.9 2.1 1.3 2.2-2.6 2.4-2.4-1.4-2.2.8-.6 2.6h-3.6l-.6-2.8-2.2-.8-2.5 1.3-2.6-2.6 1.5-2.4-.9-2.2-2.5-.6v-3.5l2.7-.6.8-2.1-1.5-2.6 2.6-2.5 2.5 1.4 2.1-.8Z" transform="translate(1 0) scale(.85)"/><circle cx="11.5" cy="11.7" r="3.2"/>',
   bell: '<path d="M5 10a7 7 0 0 1 14 0c0 7 2 6 2 8H3c0-2 2-1 2-8m5 11h4"/>',
   help: '<circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 1 1 4 3c-1 .4-1 1-1 2m0 3h.01"/>',
+  close: '<path d="m6 6 12 12M18 6 6 18"/>',
+  previous: '<path d="m15 5-7 7 7 7"/>',
   history: '<path d="M3 4h18M3 10h7m-7 6h5"/><circle cx="16.5" cy="14.5" r="5.5"/><path d="M16.5 11v4l2 1"/>',
   chevron: '<path d="m9 5 7 7-7 7"/>',
   down: '<path d="m6 9 6 6 6-6"/>',
@@ -76,26 +78,25 @@ function render() {
     return;
   }
 
-  if (tab === 'cal') {
-    app.innerHTML = calView();
-    $('#hlp').onclick = () => openHelp('cal');
-  } else {
-    const title = {today: 'Луна', care: 'Уход', stats: 'Анализ'}[tab];
-    app.innerHTML = `<header class="screen-header">
-      ${toolButton('set','settings','Настройки')}<h1 class="${tab==='today'?'visually-hidden':''}">${title}</h1>
-      ${toolButton('notifications','bell','Уведомления', APP && Object.values(S.notif||{}).some(Boolean) ? '<i class="bell-mark"></i>' : '')}
-    </header>` + {today: todayView, care: careView, stats: statsView}[tab]();
-    $('#set').onclick = openSettings;
-    $('#notifications').onclick = () => sheet(`<h2>Уведомления</h2>${notifBox() || '<p class="mut">Напоминания доступны в приложении «Луна» для Android.</p>'}`, bindNotif);
-  }
+  const title = {today:'Сегодня', cal:'Календарь', care:'Уход', stats:'Анализ'}[tab];
+  const header = `<header class="screen-header">
+    ${toolButton('set','settings','Настройки')}<h1>${title}</h1>
+    ${APP?toolButton('notifications','bell','Уведомления',Object.values(S.notif||{}).some(Boolean)?'<i class="bell-mark" aria-hidden="true"></i>':''):'<span class="screen-header-spacer"></span>'}
+  </header>`;
+  app.innerHTML = header + {today:todayView, cal:calView, care:careView, stats:statsView}[tab]();
+  $('#set').onclick = openSettings;
+  const notifications = $('#notifications');
+  if (notifications) notifications.onclick = () => sheet(`<h2>Напоминания</h2>${notifBox()}`, bindNotif);
   bindView();
+  bindDisclosures(app);
+  if (tab==='cal') bindCalendar();
 }
 
 const NAV_ICONS = {today:'home', cal:'calendar', care:'care', stats:'chart'};
 document.querySelectorAll('[data-tab]').forEach(button => {
   button.insertAdjacentHTML('afterbegin', `<span class="nav-icon">${icon(NAV_ICONS[button.dataset.tab])}</span>`);
 });
-document.getElementById('quick-entry').innerHTML = icon('plus');
+document.getElementById('quick-entry').insertAdjacentHTML('afterbegin',icon('plus'));
 
 function fertileWindow(k, cycle = natural()) {
   if (S.mode !== 'natural' || !cycle.next) return null;
@@ -104,36 +105,29 @@ function fertileWindow(k, cycle = natural()) {
   return {start: add(end,-5), end};
 }
 
-function dashboard(t) {
-  const day = cycleDay(t);
-  const pi = S.mode === 'pill' ? packInfo(t) : null;
-  const cycle = S.mode === 'natural' ? natural() : null;
-  const estimate = cycle && fertileWindow(t,cycle);
-  const fertile = estimate && (t <= estimate.end ? estimate.start : add(estimate.start,cycle.avg));
-  const pet = PETS[S.pet];
-  const resting = S.pet==='unicorn' && curPeriod(t)?.today;
-  return `<section class="dashboard" aria-label="Сегодня">
+function dashboard(t,pill='',alerts='') {
+  const cycle=S.mode==='natural'?natural():null;
+  const estimate=cycle&&fertileWindow(t,cycle);
+  const fertile=estimate&&(t<=estimate.end?estimate.start:add(estimate.start,cycle.avg));
+  const pet=PETS[S.pet];
+  const resting=S.pet==='unicorn'&&curPeriod(t)?.today;
+  return `<section class="dashboard" aria-label="Записи за сегодня">
     <div class="sky-hero">
       ${hero(t)}
-      ${pet ? `<button class="mascot pet${resting?' is-resting':''}" id="petb" aria-label="Погладить питомца ${pet.n}">${petImage(resting?'unicorn-rest':S.pet)}</button>
-        <div class="mascot-message" id="petbub" role="status">${esc(petSay(t).s)}</div>` : ''}
+      ${pet?`<button class="mascot pet${resting?' is-resting':''}" id="petb" aria-label="Погладить питомца ${pet.n}">${petImage(resting?'unicorn-rest':S.pet)}</button>
+        <div class="mascot-message" id="petbub" role="status">${esc(petSay(t).s)}</div>`:''}
     </div>
+    ${pill}${alerts}
     <div class="dashboard-metrics">
-      <button class="metric" id="metric-calendar"><span>День цикла</span><strong class="cycle-dial" style="--progress:${Math.min(day||0,C().len)/C().len*100}%">${day||'—'}</strong></button>
-      <button class="metric" id="metric-forecast">
-        <span>${pi ? 'Таблетка '+pi.day+' из '+pi.len : fertile ? shortDate(fertile) : 'Прогноз'}</span>
-        <small>${pi ? esc(P().name) : fertile ? 'Фертильные дни' : 'Календарь цикла'}</small>
-        ${icon(pi?'pill':'sprout','metric-symbol')}
-      </button>
-      <button class="metric" id="metric-care"><span>Забота<br>о себе</span>${icon('heart','metric-symbol metric-heart')}</button>
+      <button class="metric" id="metric-calendar"><span>${fertile?'Прогноз фертильных дней':'Календарь цикла'}</span>
+        <small>${fertile?'Около '+shortDate(fertile):'Все отметки по дням'}</small>${icon(fertile?'sprout':'calendar','metric-symbol')}</button>
+      <button class="metric" id="metric-care"><span>Забота о себе</span><small>Визиты и важные даты</small>${icon('heart','metric-symbol metric-heart')}</button>
     </div>
-    <button class="feeling-card" data-day="${t}"><span><b>Как вы себя чувствуете сегодня?</b><small>Отметьте симптомы, настроение и заметки</small></span>${icon('chevron')}</button>
+    <button class="feeling-card" data-day="${t}"><span><b>Самочувствие за сегодня</b><small>Симптомы, настроение и заметка</small></span>${icon('chevron')}</button>
   </section>`;
 }
 function careView() {
-  const t = today();
-  return `<button class="feeling-card" data-day="${t}"><span><b>Самочувствие и заметки</b><small>Запись на ${fmt(t)}</small></span>${icon('chevron')}</button>
-    ${softAlerts(t)}${visitsCard()}${plansCard()}
+  return `${visitsCard()}${plansCard()}
     <div class="settings-links"><button class="btn" id="care-pets">${icon('heart')} Питомец</button><button class="btn" id="care-appearance">${icon('moon')} Оформление</button></div>`;
 }
 
@@ -206,13 +200,7 @@ function openDesign(screen, parent) {
   parent?.classList.add('hide');
   const previous = document.activeElement;
   let close;
-  const onEscape = event => { if (event.key === 'Escape') exit(); };
-  const exit = () => {
-    document.removeEventListener('keydown',onEscape);
-    close();
-    parent?.classList.remove('hide');
-    previous?.focus();
-  };
+  const exit = () => close();
   const draw = (sh, selector) => {
     sh.querySelector('.design-content').innerHTML = isPets ? petScreen(filter) : appearanceScreen();
     const extra = sh.querySelector('.extended-pets');
@@ -249,75 +237,33 @@ function openDesign(screen, parent) {
       draw(sh);
       sh.querySelector('#design-back').focus({preventScroll:true});
     }, {onClose:()=>{
-      document.removeEventListener('keydown',onEscape);
       parent?.classList.remove('hide');
+      previous?.focus({preventScroll:true});
     }, swipe:false});
-  document.addEventListener('keydown',onEscape);
 }
 
-let calFocus = null;
-function selectedCalendarDay() {
-  const t = today();
-  if (calFocus?.slice(0,7) === calM) return calFocus;
-  return calM === t.slice(0,7) ? t : calM+'-01';
+
+const DISCLOSURE_KEY='luna-ui-disclosures-v1';
+let disclosures={};
+try { disclosures=JSON.parse(localStorage.getItem(DISCLOSURE_KEY))||{}; } catch {}
+function disclosure(id,title,content,{open=false,inline=false}={}){
+  return `<details class="disclosure ${inline?'disclosure-inline':'card'}" data-disclosure="${id}"${(disclosures[id]??open)?' open':''}>
+    <summary>${title} ${icon('down','disclosure-caret')}</summary>
+    <div class="disclosure-content">${content}</div>
+  </details>`;
 }
-function calView(){
-  const t=today();if(!calM)calM=t.slice(0,7);
-  const[y,m]=calM.split('-').map(Number);
-  const first=new Date(y,m-1,1);const off=(first.getDay()+6)%7;
-  const start=add(key(first),-off);
-  const focus=selectedCalendarDay(), focusRecord=S.days[focus]||{};
-  const fullMonth=MONN[m-1]+' '+y;
-  const monthLabel=SHORT_MONTHS[m-1];
-  const cycle=S.mode==='natural'?natural():null;
-  const active=cycle&&curPeriod(t);
-  let h=`<section class="calendar-page">
-    <header class="cal-head screen-header">${toolButton('hlp','help','Подсказки по календарю')}
-      <label class="month-control"><b class="visually-hidden">${fullMonth}</b><span aria-hidden="true">${monthLabel} ${icon('down')}</span><input id="calendar-month" type="month" value="${calM}" aria-label="Выбрать месяц"></label>
-      ${toolButton('calendar-tools','history','Действия календаря')}</header>`;
-  if(calSel)h+=`<div class="alert ${calSel.mode==='add'?'info':'warn'}">${calSel.mode==='add'?'🩸':'🧽'} ${calSel.a?`Первый день - ${fmt(calSel.a)}. Теперь нажми <b style="display:inline">последний</b> день (или тот же ещё раз)`:'Нажми <b style="display:inline">первый</b> день'}${calSel.mode==='del'?' - отметки месячных в этих днях сотрутся':''} <button class="linkbtn" style="display:inline;margin:0 0 0 6px" data-rng="${calSel.mode}">отмена</button></div>`;
-  h+='<div id="calcard"><div class="grid">';
-  h+=['пн','вт','ср','чт','пт','сб','вс'].map(w=>`<div class="wd">${w}</div>`).join('');
-  const stl=starts();
-  for(let i=0;i<42;i++){
-    const k=add(start,i),d=parse(k),dd=S.days[k]||{};
-    if(i>0&&i%7===0&&d.getMonth()!==m-1)break;
-    const cd=cycleDay(k,stl);
-    let cls='d';if(d.getMonth()!==m-1)cls+=' out';if(calSel&&calSel.a===k)cls+=' sel';if((S.plans||[]).some(p=>k>=p.from&&k<=p.to))cls+=' plan';if(k===t)cls+=' today';if(k===focus)cls+=' selected';
-    const predicted = k>=t && (predBleed(k) || (active&&!active.closed&&diff(active.e.start,k)<cycle.len));
-    if(dd.flow)cls+=' f'+dd.flow;else if(predicted)cls+=' pred';
-    let mk='';
-    if(S.mode==='pill'){const pi=packInfo(k);
-      if(pi){if(!pi.active){cls+=dd.flow?'':' inact';mk=P().type==='placebo'?(S.taken[k]?'<span class="mk pl">●</span>':'<span class="mk pl">○</span>'):''}
-        else if(S.taken[k])mk=lateH(k)>=12?'<span class="mk miss">!</span>':'<span class="mk ok">●</span>';
-        else if(k<t&&!(S.since&&k<S.since))mk='<span class="mk miss">✕</span>';
-        else mk='';
-        if(pi.day===1)mk+='';
-      }
-    }
-    const estimate=cycle ? fertileWindow(k,cycle) : null;
-    if(estimate&&k>=estimate.start&&k<=estimate.end) {
-      cls+=' fertile';
-      mk+=icon('sprout','fertile-mark');
-    }
-    const sy=(dd.sym&&dd.sym.length)||dd.note||dd.mood||dd.w?'<span class="sy"></span>':'';
-    h+=`<button class="${cls}" data-day="${k}" aria-label="${fmt(k)}${dd.flow?', месячные':predicted?', прогноз месячных':''}${cls.includes(' fertile')?', прогноз фертильных дней':''}" aria-pressed="${k===focus}">${cd?`<span class="cdn">${cd}</span>`:''}<span class="dn">${d.getDate()}</span>${mk}${sy}</button>`;
-  }
-  h+=`</div></div>
-    <section class="calendar-detail">
-      ${icon(focusRecord.flow?'drop':'calendar','calendar-detail-symbol')}
-      <div><b>${shortDate(focus)}</b><small>${cycleDay(focus,stl)?'День цикла '+cycleDay(focus,stl):focusRecord.flow?'Месячные':'Запись дня'}</small></div>
-      <button class="btn" id="calendar-edit">${icon('edit')} <span>Редактировать</span></button>
-    </section>
-    <div class="calendar-commands" id="calendar-commands" hidden>
-      <div class="row month-arrows"><button class="btn small" id="pm" aria-label="Предыдущий месяц">‹</button><button class="btn small" id="nm" aria-label="Следующий месяц">›</button></div>
-      <div class="row"><button class="btn small" data-rng="add">Отметить месячные</button><button class="btn small" data-rng="del">Стереть диапазон</button>${focus<=t?`<button class="btn small" id="calendar-period">${focusRecord.flow?'Снять отметку за день':'Отметить выбранный день'}</button>`:''}</div>
-      <div class="legend">`;
-  if(S.mode==='pill')h+=`<span><b style="color:var(--ok)">●</b> выпила</span><span><b style="color:var(--bad)">✕</b> пропуск</span><span><b style="color:var(--bad)">!</b> опоздание 12ч+</span><span><i style="background:#1a161c;border:1px solid var(--line)"></i>${P().type==='placebo'?'плацебо':'перерыв'}</span>`;
-  h+=`<span><i class="period-key"></i>месячные</span><span><i class="prediction-key"></i>прогноз месячных</span>
-    <span><i class="note-key"></i>заметка</span>${cycle?`<span>${icon('sprout','legend-fertile')} прогноз фертильных дней</span>`:''}
-    ${(S.plans||[]).length?'<span><i style="box-shadow:inset 0 -3px 0 #a77bff"></i>важные даты</span>':''}
-    </div></div>
-  </section>`;
-  return h;
+function previewList(id,items,limit){
+  return items.slice(0,limit).join('')+(items.length>limit
+    ?disclosure(id+'-more',`Показать всё (${items.length})`,items.slice(limit).join(''),{inline:true}):'');
+}
+function bindDisclosures(root){
+  root.querySelectorAll('[data-disclosure]').forEach(node=>{
+    let wasOpen=node.open;
+    node.addEventListener('toggle',()=>{
+      if(!node.isConnected||wasOpen===node.open)return;
+      wasOpen=node.open;
+      disclosures[node.dataset.disclosure]=node.open;
+      try { localStorage.setItem(DISCLOSURE_KEY,JSON.stringify(disclosures)); } catch {}
+    });
+  });
 }

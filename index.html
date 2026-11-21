@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#171025">
 <meta name="luna-build" content="development">
 <meta name="color-scheme" content="dark">
@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="styles/base.css">
 <link rel="stylesheet" href="styles/screens.css">
 <script src="scripts/screens.js" defer></script>
+<script src="scripts/calendar.js" defer></script>
 <script src="scripts/app.js" defer></script>
 </head>
 <body>
@@ -20,7 +21,7 @@
 <nav class="tabs hide" aria-label="Основная навигация"><div class="in">
   <button data-tab="today">Сегодня</button>
   <button data-tab="cal">Календарь</button>
-  <button class="quick-entry" id="quick-entry" aria-label="Добавить запись"></button>
+  <button class="quick-entry" id="quick-entry" aria-label="Запись за сегодня"><span>Запись</span></button>
   <button data-tab="care">Уход</button>
   <button data-tab="stats">Анализ</button>
 </div></nav>

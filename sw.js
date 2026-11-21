@@ -1,8 +1,8 @@
 // Load current files when online and retain the complete app for offline use.
-const CACHE = 'luna-shell-v16';
+const CACHE = 'luna-shell-v17';
 const FILES = [
   'index.html', 'manifest.webmanifest', 'styles/base.css', 'styles/screens.css',
-  'scripts/app.js', 'scripts/screens.js', 'assets/fonts/manrope-cyrillic.woff2', 'assets/fonts/manrope-latin.woff2',
+  'scripts/app.js', 'scripts/screens.js', 'scripts/calendar.js', 'assets/fonts/manrope-cyrillic.woff2', 'assets/fonts/manrope-latin.woff2',
   'icon-192.png', 'icon-512.png', 'icon-maskable-192.png', 'icon-maskable-512.png',
   ...['dream','moon','pink','stars','dusk','crescent','cloudbank'].map(id => 'assets/sky/' + id + '.webp'),
   ...['kitty','bunny','fox','panda','corgi','unicorn','dragon','deer','penguin','koala','owl',
