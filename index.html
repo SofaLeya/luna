@@ -233,6 +233,28 @@ nav.tabs button.on .e{filter:drop-shadow(0 0 7px #bc85eaaa)!important}
 input,select,textarea{background:#1c1530;border-color:#5b4674}
 @media(max-height:780px){.wrap{padding-top:8px}.card{padding:12px;margin-bottom:9px}.hero{padding:11px}.petc{padding:9px}.tabs{padding-top:3px}}
 @media(prefers-reduced-motion:reduce){.d{transition:none}}
+
+/* Lavender Dreams: cloud cards, calendar, pets and compact dashboard */
+.card.hero{overflow:hidden;isolation:isolate;background:radial-gradient(ellipse at 85% 0%,#9068b94d,transparent 65%),linear-gradient(145deg,#3d2856,#231a3a)}
+.card.hero:before,.petc:before{content:"";position:absolute;pointer-events:none;z-index:-1;width:190px;height:90px;right:-40px;bottom:-35px;background:radial-gradient(ellipse at 30% 60%,#d8b5f02d,transparent 67%),radial-gradient(ellipse at 70% 45%,#cba3ed35,transparent 70%);filter:blur(8px)}
+.hero .hb{font-size:clamp(26px,7vw,35px);letter-spacing:-.7px}
+.hero .hs{font-size:13px}
+.petc{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:8px;min-height:105px}
+.petc .pet{width:100px;height:100px;flex:none}
+.petc .pet svg{width:100%;height:100%;filter:drop-shadow(0 8px 10px #0d091b66)}
+.petc .bub{flex:1;min-width:0}
+.ptile{background:linear-gradient(150deg,#39274e,#241a37)!important;border:1px solid #76589588!important;border-radius:18px!important}
+.ptile.on{border-color:#e5b9fa!important;box-shadow:0 0 0 2px #c49bea44,inset 0 1px #ffffff22}
+.ptile svg{filter:drop-shadow(0 5px 8px #100b2355)}
+.cal-head{padding:8px 4px;color:#f0ddff}
+.grid{gap:5px}
+.d{border-radius:13px!important;background:#302341!important}
+.d.on,.d.sel{box-shadow:0 0 0 2px #d7a9f7!important}
+.wd{color:#bca7d7}
+.card h3{color:#d7c2eb}
+.alert.info{background:#35274d;border-color:#77569e}
+.btn.done{background:#233b37;border-color:#527f72}
+@media(max-height:760px){.petc{min-height:86px}.petc .pet{width:78px;height:78px}.hero .hb{font-size:27px}.wrap{padding-bottom:6px}}
 </style>
 </head>
 <body>
@@ -958,9 +980,28 @@ const PETS={
   hedgehog:{n:'Ёжик',b:'#e8c9a3',bl:'#f6e6d0',ears:'small',in:'#e7a98a',back:'spikes',spike:'#7a5638',snd:'Фыр-фыр!'},
   corgi:{n:'Корги',b:'#f0a24e',bl:'#fff5ea',in:'#f7b9a4',ears:'corgi',mark:'muzzle',nose:'dog',tail:'puff',snd:'Гав!'},
   unicorn:{n:'Единорог',b:'#fbf7fb',bl:'#ffffff',in:'#f6bfd4',ears:'cat',mark:'mane',horn:1,snd:'Иго-го ✨'},
+  dragon:{n:'Дракончик',b:'#a7d7c7',bl:'#d9f8e9',in:'#efb7e9',ears:'tuft',tail:'axo',snd:'Пуф! ✨'},
+  deer:{n:'Оленёнок',b:'#cda6d9',bl:'#f2dff4',in:'#e7b5d6',ears:'llama',tail:'puff',snd:'Привет!'},
+  dino:{n:'Динозаврик',b:'#b6cfaa',bl:'#e4f0d9',in:'#f3c0d9',ears:'small',back:'spikes',spike:'#8b9fc0',snd:'Р-р-р!'},
+  capybara:{n:'Капибара',b:'#c6a48e',bl:'#ead6c5',in:'#f3bec8',ears:'round',earc:'#ae8877',snd:'Чиллим!'},
+  raccoon:{n:'Енотик',b:'#aab3c8',bl:'#e6e8f4',in:'#f2b9d5',ears:'cat',tail:'cat',mark:'panda',snd:'Обнимемся?'},
+  whale:{n:'Китёнок',b:'#a6bde9',bl:'#e4eaff',in:'#eabfe5',ears:'none',tail:'axo',snd:'Буль-буль!'},
   axolotl:{n:'Аксолотль',b:'#f7b2c9',bl:'#fcd6e2',ears:'gills',tail:'axo',snd:'Буль!'}
 };
+function dreamPetSVG(id,mood){
+ const p=PETS[id],B=p.b,BL=p.bl;
+ const extras={
+ dragon:'<path d="M25 52 L14 30 L36 40 L43 18 L58 39 L79 17 L82 43 L103 31 L93 58" fill="#d9c3f5" stroke="#9e8bc9" stroke-width="2"/><path d="M89 94 Q113 84 101 62" stroke="#a7d7c7" stroke-width="13" fill="none" stroke-linecap="round"/>',
+ deer:'<path d="M40 42 Q23 27 27 13 M40 30 L19 23 M80 42 Q97 27 93 13 M80 30 L101 23" stroke="#e9c2a8" stroke-width="6" fill="none" stroke-linecap="round"/>',
+ dino:'<path d="M26 55 L19 39 L37 44 L39 23 L55 39 L67 21 L78 42 L96 31 L92 55" fill="#d5b5e8"/>',
+ capybara:'<ellipse cx="34" cy="38" rx="11" ry="13" fill="#b28b78"/><ellipse cx="86" cy="38" rx="11" ry="13" fill="#b28b78"/>',
+ raccoon:'<path d="M28 51 L28 20 L49 39 M92 51 L92 20 L71 39" fill="#7d8ca5"/><path d="M31 64 Q44 47 57 63 Q43 79 31 64 M63 63 Q77 47 89 64 Q76 79 63 63" fill="#71809e"/>',
+ whale:'<path d="M18 78 Q3 60 9 50 Q24 50 33 67 M102 78 Q117 60 111 50 Q96 50 87 67" fill="#94b4e6"/><path d="M58 37 Q51 22 44 24 M62 37 Q69 22 76 24" stroke="#d6e9ff" stroke-width="5" stroke-linecap="round"/>'
+ };
+ return `<svg viewBox="0 0 120 128" role="img" aria-label="${p.n}" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="g-${id}" cx="32%" cy="23%" r="75%"><stop stop-color="${BL}"/><stop offset="1" stop-color="${B}"/></radialGradient></defs><ellipse cx="60" cy="117" rx="39" ry="7" fill="#a989d0" opacity=".18"/><ellipse cx="60" cy="90" rx="37" ry="31" fill="${B}"/>${extras[id]}<circle cx="60" cy="66" r="43" fill="url(#g-${id})" stroke="#ffffff55" stroke-width="1.5"/><ellipse cx="40" cy="76" rx="12" ry="7" fill="#f0a8c8" opacity=".75"/><ellipse cx="80" cy="76" rx="12" ry="7" fill="#f0a8c8" opacity=".75"/><ellipse cx="45" cy="63" rx="7" ry="10" fill="#28223e"/><ellipse cx="75" cy="63" rx="7" ry="10" fill="#28223e"/><circle cx="43" cy="59" r="2.7" fill="white"/><circle cx="73" cy="59" r="2.7" fill="white"/><path d="M55 79 Q60 85 65 79" fill="none" stroke="#74516c" stroke-width="2.5" stroke-linecap="round"/><path d="M31 105 Q24 114 36 116 M89 105 Q96 114 84 116" stroke="${B}" stroke-width="9" stroke-linecap="round"/><path d="M15 23 l3 -7 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3z" fill="#e9c9ff" opacity=".85"/></svg>`;
+}
 function petSVG(id,mood,cls){
+  if(['dragon','deer','dino','capybara','raccoon','whale'].includes(id))return dreamPetSVG(id,mood);
   const p=PETS[id];if(!p)return '';
   const B=p.b,BL=p.bl,IN=p.in||'#f5b5c5',LM=p.limb||B,D='#2a2230';
   let back='',ears='',marks='',top='',eyes='',mouth='',arms='',fx='';
