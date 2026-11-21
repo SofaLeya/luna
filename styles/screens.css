@@ -460,3 +460,11 @@ button[hidden],.notes-list [hidden] { display:none; }
 .hygiene-home .step b{min-width:2ch;text-align:center;font-size:17px}
 .hygiene-home .step .mut{font-size:12px}
 @media(max-width:360px){.hygiene-home{padding:10px 12px}.hygiene-home-row strong{font-size:13px}.hygiene-home .step{gap:3px}.hygiene-home .step button{min-width:30px;min-height:30px}}
+
+/* Keep the counter on a single compact row even on 320px screens */
+.hygiene-home-row{flex-wrap:nowrap}
+.hygiene-home-row strong{min-width:0;white-space:nowrap;font-size:12px;letter-spacing:-.2px}
+.hygiene-home .step{flex-shrink:0;gap:2px}
+.hygiene-home .step button{min-width:28px;min-height:30px;padding:3px 6px}
+.hygiene-home .step b{font-size:15px}
+@media(max-width:360px){.hygiene-home{padding:9px 10px}.hygiene-home-row strong{font-size:11px}.hygiene-home .step button{min-width:26px;min-height:28px;padding:2px 5px}}
