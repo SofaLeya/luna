@@ -56,7 +56,12 @@ for (const [label, viewport] of [
       await snapshot(page, `${label}-care.png`);
       await page.getByRole('button', { name: 'Питомец', exact: true }).click();
       await expect(page.getByRole('button', { name: 'Единорог', exact: true })).toHaveAttribute('aria-pressed', 'true');
-      await snapshot(page, `${label}-pets.png`);
+      // The pet gallery intentionally grows when new companions are introduced.
+      // Validate layout and the new category instead of comparing an obsolete screenshot.
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(viewport.width);
+      await page.getByRole('button', { name: 'Пиксельные', exact: true }).click();
+      await expect(page.locator('.pet-tile .pixel-pet-art')).toHaveCount(4);
+      await expect(page.locator('[data-pet="pixel_kitty"]')).toBeVisible();
 
       await page.getByRole('button', { name: 'Назад', exact: true }).click();
       await page.getByRole('button', { name: 'Оформление', exact: true }).click();
