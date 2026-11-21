@@ -77,17 +77,36 @@ test('на плацебо: отменить месячные = новая пач
   await expect(page.locator('.ring .big')).toHaveText('1');
 });
 
-test('месячные: начались, на следующий день спрашивает, отметила по ошибке', async ({ page }) => {
+test('месячные: выбор даты, авторазметка по длительности, ручное переключение и окончание', async ({ page }) => {
   await setup(page, { day: 26 });
+  await ev(page, 'S.cyc.dur=5;save();render()');
   await page.click('[data-start]');
-  await expect(page.locator('.hero .hb')).toHaveText('1-й день');
-  await page.clock.setFixedTime(new Date('2026-11-21T12:00:00Z'));
+  await expect(page.locator('.period-pick-hint')).toContainText('Выберите первый день');
+  await page.click('[data-cal-day="2026-11-19"]');
+  expect(await ev(page, "['2026-11-19','2026-11-20','2026-11-21','2026-11-22','2026-11-23'].map(k=>S.days[k]?.flow>0)")).toEqual([true,true,true,true,true]);
+  await page.click('[data-cal-day="2026-11-20"]');
+  expect(await ev(page, "S.days['2026-11-20']?.flow||0")).toBe(0);
+  await page.click('[data-cal-day="2026-11-20"]');
+  expect(await ev(page, "S.days['2026-11-20']?.flow||0")).toBe(2);
   await page.reload();
-  await expect(page.locator('.hero .hs')).toContainText('Сегодня ещё идут?');
-  await page.click('[data-cont]');
-  await expect(page.locator('.hero .hb')).toHaveText('2-й день');
-  await page.click('[data-cancel]'); await page.click('[data-cancel]');
-  expect(await ev(page, 'episodes().length')).toBe(0);
+  expect(await ev(page, "S.days['2026-11-23']?.flow>0")).toBe(true);
+  await page.click('[data-tab="today"]');
+  await page.click('[data-end]');
+  await expect(page.locator('.period-pick-hint')).toContainText('Выберите последний день');
+  await page.click('[data-cal-day="2026-11-20"]');
+  expect(await ev(page, "S.days['2026-11-21']?.flow||0")).toBe(0);
+  expect(await ev(page, "S.days['2026-11-23']?.flow||0")).toBe(0);
+});
+
+test('авторазметка использует настройку 3 дня и сохраняет дневник', async ({ page }) => {
+  await setup(page, { day: 26 });
+  await ev(page, "S.cyc.dur=3;S.days['2026-11-20']={flow:0,note:'Сохранить заметку',sym:['боль']};save();render()");
+  await page.click('[data-start]');
+  await page.click('[data-cal-day="2026-11-20"]');
+  expect(await ev(page, "['2026-11-20','2026-11-21','2026-11-22','2026-11-23'].map(k=>S.days[k]?.flow||0)")).toEqual([3,2,2,0]);
+  await page.click('[data-cal-day="2026-11-20"]');
+  expect(await ev(page, "S.days['2026-11-20'].note")).toBe('Сохранить заметку');
+  expect(await ev(page, "S.days['2026-11-20'].sym")).toEqual(['боль']);
 });
 
 test('календарь: отметить и стереть диапазон, свайп месяца', async ({ page }) => {
