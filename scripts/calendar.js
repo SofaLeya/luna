@@ -70,7 +70,8 @@ function calView() {
   const title=MONN[month-1]+' '+year;
   const previousDisabled=shiftMonth(calM,-1)===calM?' disabled':'';
   const nextDisabled=shiftMonth(calM,1)===calM?' disabled':'';
-  let html=`<section class="calendar-page" aria-label="Календарь месяца">
+  let html=`<section class="calendar-page" aria-label="Календарь месяца">`;
+  if(periodPick)html+=`<div class="period-pick-hint" role="status"><b>${periodPick==='start'?'Выберите первый день месячных':'Выберите последний день месячных'}</b><span>${periodPick==='start'?'Автоматически отметим '+periodLength()+' '+plural(periodLength(),'день','дня','дней'):'Автоматические отметки после выбранной даты будут убраны'}</span><button class="btn small" id="period-pick-cancel">Отмена</button></div>`;
     <div class="cal-head">
       <button class="icon-btn" id="pm" aria-label="Предыдущий месяц"${previousDisabled}>${icon('previous')}</button>
       <button class="month-control" id="calendar-month" aria-label="Выбрать месяц и год, ${title}"><b>${title}</b>${icon('down')}</button>
@@ -142,6 +143,7 @@ function openMonthPicker() {
 
 function bindCalendar() {
   const move=(offset,button)=>{calM=shiftMonth(calM,offset);renderCalendar(button)};
+  const pickCancel=$('#period-pick-cancel');if(pickCancel)pickCancel.onclick=()=>{periodPick=null;renderCalendar()};
   $('#pm').onclick=()=>move(-1,'#pm');
   $('#nm').onclick=()=>move(1,'#nm');
   $('#calendar-month').onclick=openMonthPicker;
@@ -185,6 +187,17 @@ function bindCalendar() {
       if(performance.now()-lastSwipe<400)return;
       const day=button.dataset.calDay;
       if(calSel&&calSel.mode!=='menu'){rangeTap(day);return}
+      if(periodPick){
+        const mode=periodPick;
+        if(mode==='start'&&!periodStartAt(day))return;
+        if(mode==='end'&&!periodEndAt(day))return;
+        periodPick=null;
+        calFocus=day;calM=day.slice(0,7);calSel=null;
+        renderCalendar(`[data-cal-day="${day}"]`);
+        return;
+      }
+      // Tap an already focused day to toggle its period marking; the first tap selects it.
+      if(calFocus===day){toggleCalendarPeriod(day);return}
       calFocus=day;calM=day.slice(0,7);calSel=null;
       renderCalendar(`[data-cal-day="${day}"]`);
       const editButton=$('#calendar-edit');
@@ -201,8 +214,9 @@ function bindCalendar() {
   });
 }
 function toggleCalendarPeriod(k){
-  if(k>today()){toast('Будущие дни пока нельзя отмечать');return}
+  if(k>today()){toast('Будущие дни можно отметить через начало месячных');return}
   const previous=S.days[k]?S.days[k].flow||0:0;
+  if(S.autoPeriodDays)delete S.autoPeriodDays[k];
   S.days[k]=S.days[k]||{sym:[],note:''};
   S.days[k].flow=previous?0:2;
   clean(k);save();render();
