@@ -479,6 +479,7 @@ function bindView(){
   document.querySelectorAll('[data-mark]').forEach(b=>b.onclick=()=>markPill(b.dataset.mark));
   document.querySelectorAll('[data-unmark]').forEach(b=>b.onclick=()=>{const k=b.dataset.unmark,old=S.taken[k];delete S.taken[k];save();render();toast('Отметка снята',()=>{S.taken[k]=old;save();render()})});
   document.querySelectorAll('[data-help]').forEach(b=>b.onclick=()=>openHelp(b.dataset.help));
+  document.querySelectorAll('[data-home-pads]').forEach(b=>b.onclick=()=>{const k=today(),record=S.days[k]||{},before=record.pads||0,next=Math.max(0,Math.min(30,before+Number(b.dataset.homePads)));if(next===before)return;S.days[k]=record;record.pads=next;clean(k);save();document.querySelectorAll('[data-home-pads-count]').forEach(el=>el.textContent=String(next));});
   document.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>openDay(b.dataset.day));
   document.querySelectorAll('[data-week-day]').forEach(b=>b.onclick=()=>openAnalysisWeekDay(b.dataset.weekDay));
   document.querySelectorAll('[data-start]').forEach(b=>b.onclick=()=>periodCalendarMode('start'));
