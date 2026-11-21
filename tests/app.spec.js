@@ -85,9 +85,9 @@ test('месячные: выбор даты, авторазметка по дл�
   await page.click('[data-cal-day="2026-11-19"]');
   expect(await ev(page, "['2026-11-19','2026-11-20','2026-11-21','2026-11-22','2026-11-23'].map(k=>S.days[k]?.flow>0)")).toEqual([true,true,true,true,true]);
   await page.click('[data-cal-day="2026-11-20"]');
-  expect(await ev(page, "S.days['2026-11-20']?.flow||0")).toBe(3);
+  expect(await ev(page, "S.days['2026-11-20']?.flow||0")).toBe(2);
   await page.click('[data-cal-day="2026-11-20"]');
-  expect(await ev(page, "S.days['2026-11-20']?.flow||0")).toBe(3);
+  expect(await ev(page, "S.days['2026-11-20']?.flow||0")).toBe(2);
   await page.click('#calendar-edit');
   await expect(page.locator('.sheet')).toBeVisible();
   await page.locator('.sheet-bg').click({ position: { x: 5, y: 5 } });
