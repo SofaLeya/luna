@@ -95,7 +95,7 @@ test('выбор месяца и года, длина февраля, 30 и 31 �
 
 test('редактор сохраняет месячные, заметку, настроение, симптом и таблетку вместе', async ({ page }) => {
   await openLuna(page);
-  const loaded = await page.evaluate(() => structuredClone(S));
+  const loaded = await read(page);
   await page.locator(tab('cal')).click();
   await page.locator(entry(NEXT)).click();
   const detail = page.locator('.calendar-detail');
