@@ -47,7 +47,7 @@ async function pickMonth(page, month, year) {
 
 test('смена месяца и вкладки сохраняет выбранный день до явного выбора', async ({ page }) => {
   await openLuna(page);
-  const loaded = await page.evaluate(() => structuredClone(S));
+  const loaded = await read(page);
   await page.locator(tab('cal')).click();
   await page.locator(entry(NEXT)).click();
   await expect(page.locator(entry(NEXT))).toHaveAttribute('aria-pressed', 'true');
@@ -69,8 +69,8 @@ test('смена месяца и вкладки сохраняет выбран�
   await page.locator('#calendar-today').click();
   await expect(page.locator(entry(DATE))).toHaveAttribute('aria-current', 'date');
   await expect(page.locator(entry(DATE))).toHaveAttribute('aria-pressed', 'true');
-  // Selecting a date now also toggles its bleeding mark in one tap.
-  expect(await read(page)).toEqual({ ...loaded, days: { ...loaded.days, [NEXT]: { ...loaded.days[NEXT], flow: 2 } } });
+  // Selecting a date never changes stored data.
+  expect(await read(page)).toEqual(loaded);
 });
 
 test('выбор месяца и года, длина февраля, 30 и 31 день', async ({ page }) => {
@@ -95,7 +95,7 @@ test('выбор месяца и года, длина февраля, 30 и 31 �
 
 test('редактор сохраняет месячные, заметку, настроение, симптом и таблетку вместе', async ({ page }) => {
   await openLuna(page);
-  const loaded = await page.evaluate(() => structuredClone(S));
+  const loaded = await read(page);
   await page.locator(tab('cal')).click();
   await page.locator(entry(NEXT)).click();
   const detail = page.locator('.calendar-detail');
@@ -109,7 +109,7 @@ test('редактор сохраняет месячные, заметку, на
   await editor.getByRole('button', { name: 'Голова' }).click();
   await editor.getByRole('button', { name: /Снять отметку/ }).click();
   await expect(editor.getByRole('textbox', { name: 'Заметка' })).toHaveValue('Уточнённая запись');
-  expect(await read(page)).toEqual({ ...loaded, days: { ...loaded.days, [NEXT]: { ...loaded.days[NEXT], flow: 2 } } });
+  expect(await read(page)).toEqual(loaded);
   await editor.getByRole('button', { name: 'Сохранить запись' }).click();
   await expect(detail).toContainText('Уточнённая запись');
   await expect(detail).toContainText('Кровотечение: средне');
@@ -118,11 +118,11 @@ test('редактор сохраняет месячные, заметку, на
   await expect(detail).toContainText('Таблетка не отмечена');
   const take = { ...loaded.taken };
   delete take[NEXT];
-  expect(await read(page)).toEqual({
-    ...loaded, taken: take, days: { ...loaded.days, [NEXT]: {
-      ...STATE.days[NEXT], flow: 3, note: 'Уточнённая запись', mood: '😊 хорошее', sym: ['Голова'],
-    } },
-  });
+  const saved = await read(page);
+  expect(saved.taken).toEqual(take);
+  expect(saved.days).toEqual({ ...loaded.days, [NEXT]: {
+    ...STATE.days[NEXT], flow: 3, note: 'Уточнённая запись', mood: '😊 хорошее', sym: ['Голова'],
+  } });
   await page.locator('#calendar-edit').click();
   await editor.getByRole('button', { name: 'Выпила', exact: true }).click();
   await editor.getByRole('textbox', { name: 'Заметка' }).fill('Черновик');

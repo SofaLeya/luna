@@ -197,8 +197,7 @@ function bindCalendar() {
         return;
       }
       calFocus=day;calM=day.slice(0,7);calSel=null;
-      // A single tap toggles bleeding, while preserving all other day records.
-      if(day<=today()||periodFlow(day)){toggleCalendarPeriod(day);return}
+      // Selecting a day must never change its saved record.
       renderCalendar(`[data-cal-day="${day}"]`);
       const editButton=$('#calendar-edit');
       if(editButton && editButton.getBoundingClientRect().bottom>$('nav.tabs').getBoundingClientRect().top){
