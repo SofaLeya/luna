@@ -60,7 +60,7 @@ for (const [label, viewport] of [
       // Validate layout and the new category instead of comparing an obsolete screenshot.
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(viewport.width);
       await page.getByRole('button', { name: 'Пиксельные', exact: true }).click();
-      await expect(page.locator('.pet-tile .pixel-pet-art')).toHaveCount(4);
+      await expect(page.locator('.pet-tile .pixel-pet-art')).toHaveCount(8);
       await expect(page.locator('[data-pet="pixel_kitty"]')).toBeVisible();
 
       await page.getByRole('button', { name: 'Назад', exact: true }).click();
