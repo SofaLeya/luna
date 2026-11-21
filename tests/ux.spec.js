@@ -69,8 +69,8 @@ test('смена месяца и вкладки сохраняет выбран�
   await page.locator('#calendar-today').click();
   await expect(page.locator(entry(DATE))).toHaveAttribute('aria-current', 'date');
   await expect(page.locator(entry(DATE))).toHaveAttribute('aria-pressed', 'true');
-  // Selecting a date now also toggles its bleeding mark in one tap.
-  expect(await read(page)).toEqual({ ...loaded, days: { ...loaded.days, [NEXT]: { ...loaded.days[NEXT], flow: 2 } } });
+  // Selecting a date never changes stored data.
+  expect(await read(page)).toEqual(loaded);
 });
 
 test('выбор месяца и года, длина февраля, 30 и 31 день', async ({ page }) => {
@@ -109,7 +109,7 @@ test('редактор сохраняет месячные, заметку, на
   await editor.getByRole('button', { name: 'Голова' }).click();
   await editor.getByRole('button', { name: /Снять отметку/ }).click();
   await expect(editor.getByRole('textbox', { name: 'Заметка' })).toHaveValue('Уточнённая запись');
-  expect(await read(page)).toEqual({ ...loaded, days: { ...loaded.days, [NEXT]: { ...loaded.days[NEXT], flow: 2 } } });
+  expect(await read(page)).toEqual(loaded);
   await editor.getByRole('button', { name: 'Сохранить запись' }).click();
   await expect(detail).toContainText('Уточнённая запись');
   await expect(detail).toContainText('Кровотечение: средне');
