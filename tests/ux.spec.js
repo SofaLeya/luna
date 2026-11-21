@@ -47,7 +47,7 @@ async function pickMonth(page, month, year) {
 
 test('смена месяца и вкладки сохраняет выбранный день до явного выбора', async ({ page }) => {
   await openLuna(page);
-  const loaded = await page.evaluate(() => structuredClone(S));
+  const loaded = await read(page);
   await page.locator(tab('cal')).click();
   await page.locator(entry(NEXT)).click();
   await expect(page.locator(entry(NEXT))).toHaveAttribute('aria-pressed', 'true');
