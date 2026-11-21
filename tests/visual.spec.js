@@ -56,12 +56,16 @@ for (const [label, viewport] of [
       await snapshot(page, `${label}-care.png`);
       await page.getByRole('button', { name: 'Питомец', exact: true }).click();
       await expect(page.getByRole('button', { name: 'Единорог', exact: true })).toHaveAttribute('aria-pressed', 'true');
-      // The pet gallery intentionally grows when new companions are introduced.
-      // Validate layout and the new category instead of comparing an obsolete screenshot.
-      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(viewport.width);
+      await page.locator('.extended-pets summary').click();
+      await expect(page.locator('.pet-gallery [data-pet]')).toHaveCount(18);
+      await expect(page.locator('.pet-gallery img.pixel-pet-art')).toHaveCount(0);
+      await page.locator('.extended-pets summary').click();
+      await snapshot(page, `${label}-pets.png`);
       await page.getByRole('button', { name: 'Пиксельные', exact: true }).click();
-      await expect(page.locator('.pet-tile .pixel-pet-art')).toHaveCount(8);
-      await expect(page.locator('[data-pet="pixel_kitty"]')).toBeVisible();
+      await expect(page.locator('.pet-tile img.pixel-pet-art')).toHaveCount(8);
+      await page.locator('[data-pet="pixel_mooncat"]').click();
+      await expect(page.locator('.pet-feature img.pixel-pet-art')).toHaveAttribute('src', 'assets/pets/pixel_mooncat.webp');
+      await snapshot(page, `${label}-pixel-pets.png`);
 
       await page.getByRole('button', { name: 'Назад', exact: true }).click();
       await page.getByRole('button', { name: 'Оформление', exact: true }).click();
@@ -106,5 +110,29 @@ test.describe('офлайн', () => {
     expect(await page.locator('#petb img').evaluate(img => img.decode().then(() => img.naturalWidth))).toBeGreaterThan(0);
     await page.getByRole('button', { name: 'Календарь', exact: true }).click();
     await expect(page.locator('.calendar-detail')).toContainText('День цикла 3');
+    await page.getByRole('button', { name: 'Уход', exact: true }).click();
+    await page.getByRole('button', { name: 'Питомец', exact: true }).click();
+    await page.getByRole('button', { name: 'Пиксельные', exact: true }).click();
+    const images = page.locator('.pet-tile img.pixel-pet-art');
+    await expect(images).toHaveCount(8);
+    const transparent = await images.evaluateAll(async sprites => {
+      const canvas = Object.assign(document.createElement('canvas'), { width:100, height:100 });
+      const context = canvas.getContext('2d', { willReadFrequently:true });
+      return Promise.all(sprites.map(async sprite => {
+        await sprite.decode();
+        context.clearRect(0, 0, 100, 100);
+        context.drawImage(sprite, 0, 0);
+        const pixels = context.getImageData(0, 0, 100, 100).data;
+        return pixels.some((alpha,index)=>index%4===3&&alpha===0) &&
+          pixels.some((alpha,index)=>index%4===3&&alpha===255);
+      }));
+    });
+    expect(transparent).toEqual(Array(8).fill(true));
+    await page.locator('[data-pet="pixel_dragon"]').click();
+    await page.getByRole('button', { name: 'Назад', exact: true }).click();
+    await page.reload();
+    const mascot = page.locator('#petb img.pixel-pet-art');
+    await expect(mascot).toHaveAttribute('src', 'assets/pets/pixel_dragon.webp');
+    expect(await mascot.evaluate(img => img.decode().then(() => img.naturalWidth))).toBe(100);
   });
 });
