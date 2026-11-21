@@ -23,7 +23,7 @@ test('Анализ: неделя с понедельника, выделение
   expect((expected-actual)/86400000).toBeGreaterThanOrEqual(0);
   expect((expected-actual)/86400000).toBeLessThan(7);
   await selected.click();
-  await expect(page.locator('nav [data-tab="cal"]')).toHaveAttribute('aria-current',/page|true/);
+  await expect(page.locator('nav [data-tab="cal"]')).toHaveClass(/on/);
   await expect(page.locator('[data-cal-day="'+date+'"]')).toBeVisible();
 });
 test('Анализ: недельные полоски не создают горизонтальную прокрутку на мобильных экранах',async({page})=>{
