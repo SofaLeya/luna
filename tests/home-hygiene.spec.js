@@ -2,7 +2,7 @@ const {test,expect}=require('@playwright/test');
 const NOW=new Date('2025-11-21T12:00:00+03:00');
 async function boot(page,flow){
  await page.clock.setFixedTime(NOW);
- await page.addInitScript(({flow})=>{localStorage.setItem('luna-v1',JSON.stringify({setup:true,mode:'natural',since:'2025-11-19',pet:'unicorn',compact:false,cyc:{len:28,dur:6},days:flow?{'2025-11-19':{flow:3},'2025-11-20':{flow:3},'2025-11-21':{flow:3,pads:2}}:{},taken:{},ended:{}}));},{flow});
+ await page.addInitScript(({flow})=>{if(localStorage.getItem('luna-v1'))return;localStorage.setItem('luna-v1',JSON.stringify({setup:true,mode:'natural',since:'2025-11-19',pet:'unicorn',compact:false,cyc:{len:28,dur:6},days:flow?{'2025-11-19':{flow:3},'2025-11-20':{flow:3},'2025-11-21':{flow:3,pads:2}}:{},taken:{},ended:{}}));},{flow});
  await page.goto('/index.html');
 }
 test('home hygiene counter saves to existing daily record and respects bounds',async({page})=>{
