@@ -151,16 +151,16 @@ test('секции раскрываются с клавиатуры, поиск 
   await openLuna(page);
   await page.locator(tab('stats')).click();
   const forecast = page.locator(panel('stats-forecast'));
-  await expect(forecast.locator('.ep:visible')).toHaveCount(3);
+  await expect(forecast.locator('.analysis-week-event:visible')).toHaveCount(3);
   await forecast.locator(panel('forecast-more')+' summary').press('Enter');
-  expect(await forecast.locator('.ep:visible').count()).toBeGreaterThan(3);
+  expect(await forecast.locator('.analysis-week-event:visible').count()).toBeGreaterThan(3);
   await forecast.locator('summary').first().press('Space');
   await expect(forecast).not.toHaveAttribute('open', '');
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('luna-ui-disclosures-v1'))?.['stats-forecast'])).toBe(false);
   const history = page.locator(panel('stats-history'));
-  await expect(history.locator('.ep:visible')).toHaveCount(3);
+  await expect(history.locator('.analysis-week-event:visible')).toHaveCount(3);
   await history.locator(panel('history-more')+' summary').click();
-  await expect(history.locator('.ep:visible')).toHaveCount(6);
+  await expect(history.locator('.analysis-week-event:visible')).toHaveCount(6);
   await expect(page.locator('.nt:visible')).toHaveCount(3);
   await page.locator('#more-notes').click();
   await expect(page.locator('.nt:visible')).toHaveCount(7);
@@ -177,7 +177,7 @@ test('секции раскрываются с клавиатуры, поиск 
   await expect(legend).toHaveAttribute('open', '');
   await page.locator(tab('stats')).click();
   await expect(forecast).not.toHaveAttribute('open', '');
-  await expect(history.locator('.ep:visible')).toHaveCount(6);
+  await expect(history.locator('.analysis-week-event:visible')).toHaveCount(6);
   expect(await read(page)).toEqual(STATE);
 });
 

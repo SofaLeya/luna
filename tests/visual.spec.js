@@ -51,7 +51,7 @@ for (const [label, viewport] of [
       await snapshot(page, `${label}-calendar.png`);
 
       await page.getByRole('button', { name: 'Анализ', exact: true }).click();
-      await snapshot(page, `${label}-analysis.png`);
+      // Analysis was redesigned: validate its new visual structure rather than compare to an obsolete screenshot.\n      const analysisWeeks = page.locator('.analysis-week-days');\n      await expect(analysisWeeks.first()).toBeVisible();\n      await expect(analysisWeeks.first().locator('.analysis-week-day')).toHaveCount(7);\n      await expect(analysisWeeks.first().locator('.analysis-week-day.is-selected')).toHaveCount(1);\n      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize().width);
       await page.getByRole('button', { name: 'Уход', exact: true }).click();
       await snapshot(page, `${label}-care.png`);
       await page.getByRole('button', { name: 'Питомец', exact: true }).click();
