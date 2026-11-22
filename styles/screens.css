@@ -468,3 +468,18 @@ button[hidden],.notes-list [hidden] { display:none; }
 .hygiene-home .step button{min-width:28px;min-height:30px;padding:3px 6px}
 .hygiene-home .step b{font-size:15px}
 @media(max-width:360px){.hygiene-home{padding:9px 10px}.hygiene-home-row strong{font-size:11px}.hygiene-home .step button{min-width:26px;min-height:28px;padding:2px 5px}}
+
+/* The home screen should not have a spare scroll tail beneath collapsed cards.
+   Keep natural scrolling when the content genuinely exceeds the viewport. */
+body:has(.wrap[data-screen="today"]) { padding-bottom:0; }
+.wrap[data-screen="today"] {
+  min-height:100dvh;
+  padding-bottom:calc(var(--nav-height) + 4px);
+}
+.wrap[data-screen="today"] .dashboard { padding-bottom:0; }
+@media (max-height:800px) {
+  .wrap[data-screen="today"] { padding-top:max(4px,env(safe-area-inset-top)); }
+  .wrap[data-screen="today"] .screen-header { min-height:40px; }
+  .wrap[data-screen="today"] .dashboard { gap:6px; }
+  .wrap[data-screen="today"] .sky-hero { padding-bottom:5px; }
+}

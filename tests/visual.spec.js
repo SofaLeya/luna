@@ -150,3 +150,22 @@ test.describe('офлайн', () => {
     expect(await mascot.evaluate(img => img.decode().then(() => img.naturalWidth))).toBe(100);
   });
 });
+
+
+test('главная: нет пустой прокрутки при компактных карточках, длинное содержимое доступно', async ({ page }) => {
+  await page.setViewportSize({ width: 393, height: 1000 });
+  await openLuna(page, 'pill');
+  await expect(page.locator('.dashboard')).toBeVisible();
+  const compact = await page.evaluate(() => ({
+    height: document.documentElement.scrollHeight,
+    viewport: document.documentElement.clientHeight,
+    bottom: document.querySelector('.dashboard').getBoundingClientRect().bottom,
+    nav: document.querySelector('nav.tabs').getBoundingClientRect().top,
+  }));
+  expect(compact.height).toBeLessThanOrEqual(compact.viewport + 2);
+  expect(compact.bottom).toBeLessThanOrEqual(compact.nav);
+  await page.setViewportSize({ width: 393, height: 480 });
+  expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeGreaterThan(480);
+  await page.locator('.feeling-card').scrollIntoViewIfNeeded();
+  await expect(page.locator('.feeling-card')).toBeVisible();
+});
